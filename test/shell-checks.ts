@@ -49,6 +49,11 @@ function expectSource(id: string): void {
 }
 
 export async function runShellChecks(extension: TestExtension): Promise<string[]> {
+  check(
+    Gio.Vfs.get_default().get_supported_uri_schemes().sort().join(',') ===
+      Gio.Vfs.get_local().get_supported_uri_schemes().sort().join(','),
+    'Shell fixture must use local GIO VFS',
+  );
   const launcher = new Gio.SubprocessLauncher({ flags: Gio.SubprocessFlags.NONE });
   launcher.setenv('GDK_BACKEND', 'wayland', true);
   launcher.setenv('WAYLAND_DISPLAY', GLib.getenv('WAYLAND_DISPLAY') ?? 'wayland-0', true);
