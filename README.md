@@ -121,7 +121,8 @@ state and are not exported.
 
 Requirements: Node.js 24.22 or newer in the 24.x series, npm, GJS, GNOME's
 `gnome-extensions` CLI, and `glib-compile-schemas`. Native UI checks also use
-Xvfb, D-Bus and ImageMagick's `import` command.
+Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
+compilation and typed linting.
 
 ```sh
 npm ci
