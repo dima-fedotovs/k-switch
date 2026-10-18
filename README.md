@@ -248,6 +248,11 @@ Scanner dependencies are hash-locked.
 
 Changes to main go through pull requests with required green checks. Dependabot
 updates npm and Actions dependencies weekly; security checks also run weekly.
+Compatible npm updates and Actions updates are grouped to limit PR noise. Major
+Node typings and TypeScript upgrades require a coordinated runtime/linter change:
+Node typings follow Node 22, and the pinned typescript-eslint supports TypeScript
+below 6.1. Hosted quality checks upload/download the release assets and verify
+their hashes before publication.
 Actions are pinned to full commits, and only the release job has publication
 permissions. The backup development branch remains local.
 
