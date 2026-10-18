@@ -1,0 +1,17 @@
+name: Prepare GNOME 50
+description: Install the pinned Node line and GNOME 50 test dependencies
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+    - shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gjs gnome-shell libglib2.0-bin gnome-settings-daemon gir1.2-adw-1 xvfb xauth imagemagick dbus-x11 ibus libegl1-mesa-dev libgles2-mesa-dev
+        gnome-shell --version | tee "$RUNNER_TEMP/gnome-version.txt"
+        grep -Eq 'GNOME Shell 50\.' "$RUNNER_TEMP/gnome-version.txt"
+    - shell: bash
+      run: npm ci

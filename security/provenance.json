@@ -1,0 +1,32 @@
+{
+  "approvals": [
+    {
+      "path": "scripts/codeql-gate.ts",
+      "sourceSha256": "eca28f0c4b95ee5ef4fd6e256b47ea5cb75c8dc5ae895c1e3d340e7cd8bcae87",
+      "matchSha256": "0f3a5c05beb64948f25e0980e92948c3c319816de075183c8377e3f9d062be8d",
+      "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
+      "upstream": "https://github.com/SerenityJS/vanilla-behaviors"
+    },
+    {
+      "path": "scripts/security-negative.ts",
+      "sourceSha256": "d7aa52bbf0aaa2e70e6c4cd7948efa8e33d641abfad0b5677b1daa1c0b8a1a33",
+      "matchSha256": "15ce44497c16be45e1193fa42fd7ceca59d5146f049990dce1b3b16243bdc1d5",
+      "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
+      "upstream": "https://github.com/fitlab-ai/agent-infra"
+    },
+    {
+      "path": "src/prefs/transfer.ts",
+      "sourceSha256": "9a8f73d107019f74565c2bca56849b8fd7303f275335249eb2cfc4378daf87f2",
+      "matchSha256": "d05a29a4f3a4c557383ed9df7c94f3733a75c25af9ea2ae2f58c04c91d4abf4e",
+      "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
+      "upstream": "https://github.com/jeffshee/gnome-ext-hanabi"
+    },
+    {
+      "path": "src/runtime/indicator.ts",
+      "sourceSha256": "80eb23b267ea22be0a10b951138e2d752516168e596a8780c5ecfd2fef262460",
+      "matchSha256": "329b783e116b247f3f9e654feb976d98399fed67bc18576967d47a3a70c24f78",
+      "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
+      "upstream": "https://www.npmjs.com/package/create-codasaii-gnome-extension"
+    }
+  ]
+}

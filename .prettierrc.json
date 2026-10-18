@@ -1,0 +1,14 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "plugins": ["prettier-plugin-sh"],
+  "overrides": [
+    {
+      "files": ".githooks/*",
+      "options": {
+        "parser": "sh"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+K-switch
+Copyright (C) 2026 Dimitrijs Fedotovs
+SPDX-License-Identifier: GPL-3.0-or-later
+
+The modifiers-accelerator-activated signal interception technique used by
+src/runtime/keyboard.ts was adapted from Switch Two Layouts, version 13:
+https://extensions.gnome.org/extension/4042/switch-two-layouts/
+https://bitbucket.org/qt-max/gnome-shell-extension-switchtwolayouts/
+Copyright (c) 2021-2026 Alice Mikityanska
+The upstream source declares: MIT OR GPL-2.0-or-later.
+K-switch uses the GPL option and is distributed under GPL-3.0-or-later.
+
+GNOME Shell and GJS are external runtime dependencies. Their implementations
+are not bundled in the extension ZIP. TypeScript declarations and npm build
+utilities are development dependencies; see the release CycloneDX inventory.

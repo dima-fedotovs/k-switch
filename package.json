@@ -1,0 +1,42 @@
+{
+  "name": "gnome-k-switch",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "compile": "node scripts/compile.ts",
+    "test": "npm run compile && c8 --all --include '.build/src/core/**/*.js' --check-coverage --lines 100 --functions 100 --branches 100 --statements 100 node --experimental-test-isolation=none --test '.build/test/*.test.js'",
+    "build": "npm run compile && node scripts/build.ts",
+    "check": "npm run format:check && npm run lint && npm run lint:shell && npm run typecheck && npm test && npm run build && npm run test:gjs",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "test:gjs": "GSETTINGS_BACKEND=memory GSETTINGS_SCHEMA_DIR=$PWD/dist/schemas gjs -m .build/test/gjs-smoke.js",
+    "test:shell": "npm run build && node scripts/shell-test.ts",
+    "test:prefs": "node scripts/prefs-test.ts",
+    "lint:shell": "node scripts/check-shell.ts",
+    "quality:prove": "node scripts/prove-quality.ts",
+    "security": "node .build/scripts/security-scan.js",
+    "release:assets": "node .build/scripts/release-tools.js assets"
+  },
+  "engines": {
+    "node": ">=22.19.0 <23"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@girs/gnome-shell": "50.0.4",
+    "@types/node": "22.20.5",
+    "c8": "12.0.0",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "fflate": "0.8.3",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-sh": "0.20.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2"
+  },
+  "license": "GPL-3.0-or-later"
+}

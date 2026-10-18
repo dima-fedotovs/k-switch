@@ -1,0 +1,80 @@
+[
+  {
+    "path": "NOTICE",
+    "sourceSha256": "d8f3843b216318eb83798d1562b147f0962b216b8d573c9cb18fa83c2b2dd36f",
+    "expression": "(MIT OR GPL-1.0-or-later) AND GPL-2.0-or-later AND GPL-1.0-or-later AND GPL-3.0-or-later",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "MIT",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "Apache-2.0",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "ISC",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "BSD-2-Clause",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "BSD-3-Clause",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "package-lock.json",
+    "sourceSha256": "c071767d49d2863f7ee3c342a61f4d6abd5efff9c7b3e8e5ee6ff77031d35730",
+    "expression": "BlueOak-1.0.0",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "scripts/build.ts",
+    "sourceSha256": "8fcd4a61723063f93267c32459e3dd7ac4697edfeffe1cbb5fc2aa92300629af",
+    "expression": "JSON",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "scripts/security-policy.ts",
+    "sourceSha256": "eaf305429ccd5b5a39bb0fd0b0bb9aa2e4719bc49d76b18814fcba3011e98c17",
+    "expression": "JSON",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "scripts/security-scan.ts",
+    "sourceSha256": "8d511ce66b4c97154529689cb9e1889d34264a391d59574e6f3b2231b43f031d",
+    "expression": "JSON",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "security/PROVENANCE.md",
+    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "expression": "(MIT OR GPL-1.0-or-later) AND GPL-2.0-or-later AND GPL-1.0-or-later",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "security/PROVENANCE.md",
+    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "expression": "GPL-3.0-or-later AND GPL-3.0-only",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  },
+  {
+    "path": "security/PROVENANCE.md",
+    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "expression": "JSON AND GPL-1.0-or-later",
+    "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
+  }
+]

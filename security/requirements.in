@@ -1,0 +1,4 @@
+scanoss==1.54.2
+scancode-toolkit==32.4.1
+pluggy==1.5.0
+click==8.2.1

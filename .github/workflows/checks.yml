@@ -1,0 +1,121 @@
+name: Checks
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  quality:
+    name: Quality and package
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/prepare
+      - run: npm run check
+      - run: npm run quality:prove
+      - run: npm run build
+      - run: npm run release:assets
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: |
+            artifacts/k-switch@bug.guru.shell-extension.zip
+            artifacts/k-switch-*.cdx.json
+            artifacts/SHA256SUMS
+          if-no-files-found: error
+  native:
+    name: GNOME 50 integration
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/prepare
+      - run: npm run build
+      - run: npm run test:prefs > artifacts/prefs-run.log 2>&1
+      - run: node scripts/shell-test.ts > artifacts/shell-run.log 2>&1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: native-results
+          path: artifacts/
+  security:
+    name: Provenance licenses and secrets
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/prepare
+      - uses: ./.github/actions/security
+      - run: actionlint
+      - run: npm run build
+      - run: npm audit --audit-level=moderate
+      - run: node .build/scripts/security-negative.js
+      - run: npm run security
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: security-results
+          path: |
+            artifacts/security/*.json
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run compile
+      - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+          config: |
+            paths-ignore:
+              - .build
+              - dist
+              - artifacts
+              - node_modules
+      - uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        id: analyze
+        with:
+          output: sarif
+          upload: false
+          category: /language:${{ matrix.language }}
+      - run: node .build/scripts/codeql-gate.js sarif
+      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+        if: ${{ always() && steps.analyze.outcome == 'success' }}
+        with:
+          sarif_file: sarif
+          category: /language:${{ matrix.language }}
+  complete:
+    name: Required checks
+    if: always()
+    needs: [quality, native, security, codeql]
+    runs-on: ubuntu-26.04
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -e 'all(.[]; .result == "success")'

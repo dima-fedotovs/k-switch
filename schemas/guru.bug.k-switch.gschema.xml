@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="guru.bug.k-switch" path="/guru/bug/k-switch/">
+    <key name="configuration" type="s">
+      <default>''</default>
+      <summary>Versioned group configuration; empty before migration</summary>
+    </key>
+    <key name="active-group" type="s">
+      <default>''</default>
+      <summary>Last active group on this computer</summary>
+    </key>
+    <key name="k-switch-next-group" type="as">
+      <default>[]</default>
+      <summary>Optional shortcut to the next layout group</summary>
+    </key>
+    <key name="k-switch-previous-group" type="as">
+      <default>[]</default>
+      <summary>Optional shortcut to the previous layout group</summary>
+    </key>
+    <key name="first-source" type="s">
+      <default>'xkb:us'</default>
+      <summary>First primary keyboard layout</summary>
+    </key>
+    <key name="second-source" type="s">
+      <default>'xkb:ru'</default>
+      <summary>Second primary keyboard layout</summary>
+    </key>
+    <key name="shortcut" type="s">
+      <choices>
+        <choice value="caps"/>
+        <choice value="shift-caps"/>
+        <choice value="alt-caps"/>
+        <choice value="menu"/>
+        <choice value="scroll-lock"/>
+        <choice value="both-shifts"/>
+        <choice value="alt-shift"/>
+        <choice value="ctrl-shift"/>
+      </choices>
+      <default>'caps'</default>
+      <summary>Keyboard switching shortcut</summary>
+    </key>
+  </schema>
+</schemalist>

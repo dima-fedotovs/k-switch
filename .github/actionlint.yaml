@@ -1,0 +1,4 @@
+# actionlint 1.7.12 predates this GitHub-hosted label; keep all other checks active.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
