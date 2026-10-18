@@ -19,7 +19,8 @@
     "lint:shell": "node scripts/check-shell.ts",
     "quality:prove": "node scripts/prove-quality.ts",
     "security": "node .build/scripts/security-scan.js",
-    "release:assets": "node .build/scripts/release-tools.js assets"
+    "release:assets": "node .build/scripts/release-tools.js assets",
+    "security:ci": "node .build/scripts/security-scan.js --ci"
   },
   "engines": {
     "node": ">=22.19.0 <23"

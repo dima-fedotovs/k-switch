@@ -6,6 +6,7 @@ import {
   checkProvenance,
   checkSarif,
   matchHash,
+  localProvenance,
   releaseVersion,
 } from '../scripts/security-policy.js';
 
@@ -90,6 +91,41 @@ void test('CodeQL upload success cannot mask vulnerability, diagnostic or scanne
     ],
   });
   checkSarif(report('3.9'));
+  const extensionResult = {
+    rule: { id: 'test/extension', toolComponent: { index: 0 } },
+    level: 'note',
+  };
+  const extended = {
+    runs: [
+      {
+        tool: {
+          driver: { rules: [] },
+          extensions: [{ rules: [{ id: 'test/extension', properties: {} }] }],
+        },
+        results: [extensionResult],
+      },
+    ],
+  };
+  checkSarif(extended);
+  extensionResult.level = 'error';
+  assert.throws(() => {
+    checkSarif(extended);
+  });
+  assert.throws(() => {
+    checkSarif({
+      runs: [{ tool: { driver: { rules: [] } }, results: [{ ruleId: 'missing' }] }],
+    });
+  });
+  assert.throws(() => {
+    checkSarif({
+      runs: [
+        {
+          tool: { driver: { rules: [] } },
+          invocations: [{ toolConfigurationNotifications: [{ level: 'error' }] }],
+        },
+      ],
+    });
+  });
   assert.throws(() => {
     checkSarif(report('4.0'));
   });
@@ -119,4 +155,19 @@ void test('only matching semantic release tags are accepted and development rele
   for (const tag of ['main', '0.4.0', 'v01.0.0', 'v0.4.1']) {
     assert.throws(() => releaseVersion(tag, ['0.4.0', '0.4.0', '0.4.0']));
   }
+});
+
+void test('SCANOSS is local-only and hosted scanning explicitly omits provenance', () => {
+  assert.equal(localProvenance([], false), true);
+  assert.equal(localProvenance(['--ci'], true), false);
+  assert.equal(localProvenance(['--ci'], false), false);
+  assert.throws(() => {
+    localProvenance([], true);
+  });
+  assert.throws(() => {
+    localProvenance(['--unknown'], false);
+  });
+  assert.throws(() => {
+    localProvenance(['--ci', '--extra'], true);
+  });
 });

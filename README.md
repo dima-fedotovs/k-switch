@@ -213,8 +213,10 @@ it cannot retrofit itself into a window already executing older code.
 
 ## Quality and publication status
 
-Version 0.4.0 is a GitHub pre-release. No EGO publication is configured.
-All 25 unit tests pass; group policy, migration and configuration validation have
+K-switch is distributed through [GitHub](https://github.com/dima-fedotovs/k-switch).
+Versions below 1.0 are pre-releases; check the repository's Releases page for
+published artifacts. No EGO publication is configured.
+All 26 unit tests pass; group policy, migration and configuration validation have
 100% core coverage in all four metrics.
 Native checks exercise sticky unassigned sources, group overlap/order, separate
 short/long names, optional source display, indicator selection/visibility, real
@@ -237,11 +239,12 @@ manual check; repository tests do not restart either working desktop.
 
 GitHub CI runs on the explicit `ubuntu-26.04` image and checks GNOME Shell 50
 before native tests. Required checks include quality/coverage, six negative
-controls, GTK/headless GNOME, secret scanning, licenses, source provenance,
+controls, GTK/headless GNOME, secret scanning, licenses,
 moderate-or-higher npm vulnerabilities, and CodeQL for TypeScript and Actions.
-New source matches and scanner failures block CI. See [SECURITY.md](SECURITY.md)
-and [the source review](security/PROVENANCE.md). The SCANOSS service receives
-fingerprints rather than raw source. Scanner dependencies are hash-locked.
+Required scanner failures block CI. SCANOSS runs locally before a release,
+separately from GitHub CI; no PR, scheduled or release job contacts its API.
+See [SECURITY.md](SECURITY.md) and [the source review](security/PROVENANCE.md).
+Scanner dependencies are hash-locked.
 
 Changes to main go through pull requests with required green checks. Dependabot
 updates npm and Actions dependencies weekly; security checks also run weekly.
@@ -267,7 +270,15 @@ by Alice Mikityanska. License: **GPL-3.0-or-later**.
 
 Repository: https://github.com/dima-fedotovs/k-switch
 
-A tag such as `v0.4.0` reruns the complete gate. The tag must match all project
+Before tagging, a maintainer runs `npm run build && npm run security` locally
+with the locked scanner environment. This sends only source fingerprints to
+SCANOSS. Review every new match and retain exact approvals in
+`security/provenance.json`; an unavailable service leaves this local review
+unfinished. GitHub cannot certify that this manual step happened. CI uses
+`npm run security:ci` for ScanCode and Gitleaks, and its report explicitly marks
+provenance as `local-only-not-run`.
+
+A tag such as `v0.4.0` reruns the complete hosted gate. The tag must match all project
 version declarations and refer to a commit from main. Versions below 1.0 and
 versions with a prerelease suffix are marked as pre-releases. Failed checks do
 not publish a release. A repeated run cannot replace an existing release.

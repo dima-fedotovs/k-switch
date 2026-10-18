@@ -36,5 +36,7 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   Do not publish to EGO, replace published assets, or push archive/pre-squash.
 - Source match approvals must bind the exact source SHA256 and match fields.
   Scanner errors, partial reports and unreviewed matches fail closed.
+  Run SCANOSS locally before tagging; never invoke it in GitHub Actions. Hosted
+  checks use security:ci and explicitly report provenance as not run.
 - Preserve NOTICE in the ZIP. npm dependencies are build/dev tools, not bundled
   runtime code. Release SBOM and provenance must describe the actual artifact.

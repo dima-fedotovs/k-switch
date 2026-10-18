@@ -43,7 +43,7 @@ jobs:
           name: native-results
           path: artifacts/
   security:
-    name: Provenance licenses and secrets
+    name: Licenses and secrets
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
@@ -57,7 +57,7 @@ jobs:
       - run: npm run build
       - run: npm audit --audit-level=moderate
       - run: node .build/scripts/security-negative.js
-      - run: npm run security
+      - run: npm run security:ci
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -103,6 +103,12 @@ jobs:
           output: sarif
           upload: false
           category: /language:${{ matrix.language }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: ${{ always() && steps.analyze.outcome == 'success' }}
+        with:
+          name: codeql-${{ matrix.language }}
+          path: sarif/
+          if-no-files-found: error
       - run: node .build/scripts/codeql-gate.js sarif
       - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
         if: ${{ always() && steps.analyze.outcome == 'success' }}
