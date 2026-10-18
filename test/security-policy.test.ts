@@ -90,6 +90,41 @@ void test('CodeQL upload success cannot mask vulnerability, diagnostic or scanne
     ],
   });
   checkSarif(report('3.9'));
+  const extensionResult = {
+    rule: { id: 'test/extension', toolComponent: { index: 0 } },
+    level: 'note',
+  };
+  const extended = {
+    runs: [
+      {
+        tool: {
+          driver: { rules: [] },
+          extensions: [{ rules: [{ id: 'test/extension', properties: {} }] }],
+        },
+        results: [extensionResult],
+      },
+    ],
+  };
+  checkSarif(extended);
+  extensionResult.level = 'error';
+  assert.throws(() => {
+    checkSarif(extended);
+  });
+  assert.throws(() => {
+    checkSarif({
+      runs: [{ tool: { driver: { rules: [] } }, results: [{ ruleId: 'missing' }] }],
+    });
+  });
+  assert.throws(() => {
+    checkSarif({
+      runs: [
+        {
+          tool: { driver: { rules: [] } },
+          invocations: [{ toolConfigurationNotifications: [{ level: 'error' }] }],
+        },
+      ],
+    });
+  });
   assert.throws(() => {
     checkSarif(report('4.0'));
   });

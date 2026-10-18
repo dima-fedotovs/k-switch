@@ -134,17 +134,21 @@ export function checkSarif(value: unknown): void {
 }
 
 function checkRun(run: Record<string, unknown>): void {
-  const rules = list(object(object(run.tool).driver).rules).map(object);
+  const tool = object(run.tool);
+  const components = [object(tool.driver), ...list(tool.extensions ?? []).map(object)];
   for (const invocation of list(run.invocations ?? [])) {
     checkInvocation(object(invocation));
   }
   for (const entry of list(run.results ?? [])) {
-    checkResult(object(entry), rules);
+    checkResult(object(entry), components);
   }
 }
 
 function checkInvocation(invocation: Record<string, unknown>): void {
-  const notifications = list(invocation.toolExecutionNotifications ?? []);
+  const notifications = [
+    ...list(invocation.toolExecutionNotifications ?? []),
+    ...list(invocation.toolConfigurationNotifications ?? []),
+  ];
   if (
     invocation.executionSuccessful === false ||
     notifications.some((value) => object(value).level === 'error')
@@ -155,17 +159,40 @@ function checkInvocation(invocation: Record<string, unknown>): void {
 
 function checkResult(
   result: Record<string, unknown>,
-  rules: readonly Record<string, unknown>[],
+  components: readonly Record<string, unknown>[],
 ): void {
-  const rule = rules.find((item) => item.id === result.ruleId);
-  if (rule === undefined) {
-    throw new Error('CodeQL result references an unknown rule.');
-  }
+  const rule = resolveRule(result, components);
   const score = Number(object(rule.properties ?? {})['security-severity'] ?? 0);
   const level = result.level ?? object(rule.defaultConfiguration ?? {}).level;
   if (!Number.isFinite(score) || score >= 4 || level === 'error') {
-    throw new Error(`Blocking CodeQL result: ${String(result.ruleId)}`);
+    throw new Error(`Blocking CodeQL result: ${String(rule.id)}`);
   }
+}
+
+function resolveRule(
+  result: Record<string, unknown>,
+  components: readonly Record<string, unknown>[],
+): Record<string, unknown> {
+  const reference = object(result.rule ?? {});
+  const componentReference = object(reference.toolComponent ?? {});
+  const componentIndex = componentReference.index;
+  if (
+    componentIndex !== undefined &&
+    (!Number.isInteger(componentIndex) || Number(componentIndex) < 0)
+  ) {
+    throw new Error('Invalid SARIF tool component index.');
+  }
+  const selected =
+    componentIndex === undefined
+      ? components
+      : components.slice(Number(componentIndex) + 1, Number(componentIndex) + 2);
+  const id = result.ruleId ?? reference.id;
+  const rules = selected.flatMap((component) => list(component.rules ?? []).map(object));
+  const matches = rules.filter((rule) => rule.id === id);
+  if (typeof id !== 'string' || matches.length !== 1) {
+    throw new Error(`CodeQL result references an unknown or ambiguous rule: ${String(id)}`);
+  }
+  return object(matches[0]);
 }
 
 export function releaseVersion(

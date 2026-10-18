@@ -213,7 +213,13 @@ it cannot retrofit itself into a window already executing older code.
 
 ## Quality and publication status
 
-Version 0.4.0 is a GitHub pre-release. No EGO publication is configured.
+Initial publication is in progress at [dima-fedotovs/k-switch](https://github.com/dima-fedotovs/k-switch).
+Version 0.4.0 is planned as a GitHub pre-release and has not been released yet.
+The initial hosted run passed quality and GNOME 50 integration. CodeQL fixes
+are under PR validation; the mandatory SCANOSS cloud scan is blocked by an API
+rate limit. No tag or release will be published until every required gate passes.
+Main protection and release download/attestation acceptance remain pending that
+first complete green run. No EGO publication is configured.
 All 25 unit tests pass; group policy, migration and configuration validation have
 100% core coverage in all four metrics.
 Native checks exercise sticky unassigned sources, group overlap/order, separate

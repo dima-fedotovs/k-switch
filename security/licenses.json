@@ -49,7 +49,7 @@
   },
   {
     "path": "scripts/security-policy.ts",
-    "sourceSha256": "eaf305429ccd5b5a39bb0fd0b0bb9aa2e4719bc49d76b18814fcba3011e98c17",
+    "sourceSha256": "eca667c3760181bd8195a321b2a3c13eb0cd29d0f9c2a7fb13e4cf9b121f0491",
     "expression": "JSON",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
