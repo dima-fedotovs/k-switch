@@ -30,6 +30,7 @@ try {
       WAYLAND_DISPLAY: undefined,
       DCONF_PROFILE: undefined,
       GSETTINGS_BACKEND: undefined,
+      GIO_USE_VFS: 'local',
     },
     stdio: 'inherit',
     timeout: 60_000,
