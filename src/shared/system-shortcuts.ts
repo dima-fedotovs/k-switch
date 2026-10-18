@@ -70,10 +70,10 @@ export class SystemShortcuts {
       }
       this.#write(entry.settings, 'binding', configuration[entry.action.field]);
       this.#listen(entry.settings, 'changed::binding', () => {
-        this.#pull(entry);
+        this.#pull();
       });
       this.#listen(entry.settings, 'changed::command', () => {
-        this.#pull(entry);
+        this.#pull();
       });
     }
     this.#paths([
@@ -84,9 +84,7 @@ export class SystemShortcuts {
       this.#push();
     });
     this.#listen(this.#parent, 'changed::custom-keybindings', () => {
-      for (const entry of this.#entries) {
-        this.#pull(entry);
-      }
+      this.#pull();
     });
     return true;
   }
@@ -185,17 +183,26 @@ export class SystemShortcuts {
     }
   }
 
-  #pull(entry: Binding): void {
+  #pull(): void {
     if (this.#syncing) {
       return;
     }
-    const configuration = readConfiguration(this.#settings);
-    const binding =
-      this.#parent.get_strv('custom-keybindings').includes(entry.path) && this.#owned(entry)
-        ? entry.settings.get_string('binding')
-        : '';
-    if (configuration[entry.action.field] !== binding) {
-      writeConfiguration(this.#settings, { ...configuration, [entry.action.field]: binding });
+    this.#syncing = true;
+    try {
+      const configuration = readConfiguration(this.#settings);
+      const updated = { ...configuration };
+      const paths = this.#parent.get_strv('custom-keybindings');
+      for (const entry of this.#entries) {
+        updated[entry.action.field] =
+          paths.includes(entry.path) && this.#owned(entry)
+            ? entry.settings.get_string('binding')
+            : '';
+      }
+      if (JSON.stringify(configuration) !== JSON.stringify(updated)) {
+        writeConfiguration(this.#settings, updated);
+      }
+    } finally {
+      this.#syncing = false;
     }
   }
 }

@@ -59,6 +59,7 @@ export function verifySystemShortcuts(settings: Gio.Settings): void {
     previous.get_string('binding') === '<Super><Alt>b',
     'Preference edits reach system settings',
   );
+  verifyResetAll(settings, parent, unrelated);
   next.reset('binding');
   next.reset('name');
   next.reset('command');
@@ -91,10 +92,21 @@ export function verifySystemShortcuts(settings: Gio.Settings): void {
   );
   verifyRefused(settings, next, onError);
   check(errors.length === 0, 'System shortcut synchronization must not report errors');
+}
+
+function verifyResetAll(settings: Gio.Settings, parent: Gio.Settings, unrelated: string): void {
+  const before = readConfiguration(settings);
+  parent.set_strv('custom-keybindings', [unrelated]);
+  const reset = readConfiguration(settings);
   check(
-    next.get_string('command') === 'user-owned-command',
-    'Refused registration preserves the command',
+    reset.groupShortcut === '' && reset.previousGroupShortcut === '',
+    'Removing both system actions clears both assignments without restoring either one',
   );
+  check(
+    parent.get_strv('custom-keybindings').join(',') === unrelated,
+    'Resetting custom shortcuts must preserve the external path snapshot',
+  );
+  writeConfiguration(settings, before);
 }
 
 function verifyRefused(
