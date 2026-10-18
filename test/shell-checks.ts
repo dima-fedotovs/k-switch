@@ -13,6 +13,7 @@ import { shellVersion } from '../src/shared/shell-version.js';
 import { UUID, VERSION } from '../src/shared/release.js';
 
 interface TestExtension {
+  readonly dir: Gio.File;
   enable(): void;
   disable(): void;
   getSettings(): Gio.Settings;
@@ -125,7 +126,42 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   checked.push('Three enable/disable cycles without duplicate handlers');
   await competingExtension(extension, checked);
   await shortcutTakeover(extension, checked);
+  cachedRuntimeCheck(extension, checked);
   return checked;
+}
+
+function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
+  const settings = extension.getSettings();
+  const saved = settings.get_string('configuration');
+  const file = extension.dir.get_child('metadata.json');
+  const [, bytes] = file.load_contents(null);
+  try {
+    file.replace_contents(
+      new TextEncoder().encode(JSON.stringify({ 'version-name': '99.0.0' })),
+      null,
+      false,
+      Gio.FileCreateFlags.REPLACE_DESTINATION,
+      null,
+    );
+    let rejected = false;
+    try {
+      extension.enable();
+    } catch (error) {
+      rejected = String(error).includes('Log out and sign in again');
+    }
+    check(rejected, 'Cached runtime refuses changed on-disk code before starting');
+    check(
+      settings.get_string('configuration') === saved,
+      'Rejected startup preserves configuration',
+    );
+    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup creates no indicator');
+  } finally {
+    file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+    extension.disable();
+  }
+  checked.push(
+    'Cached runtime refuses mismatched installed versions without touching configuration',
+  );
 }
 
 async function shortcutTakeover(extension: TestExtension, checked: string[]): Promise<void> {

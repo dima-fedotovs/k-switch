@@ -21,6 +21,8 @@ Read README.md and CONTRIBUTING.md before modifying this project.
 - Check Shell, preferences-code and on-disk versions before preferences can
   synchronize or write settings. Mismatches must preserve configuration and block
   editing until a matching session is available.
+  Active Shell code must report its own version; metadata is not execution proof.
+  Cancel pending transfers on lock/close and recheck versions before writing.
 - Keep menu items alive during group activation; label/visibility changes must
   not destroy the active gesture's actor.
 - Target GNOME Shell 50. Verify version-specific APIs against its actual source.

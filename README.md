@@ -152,6 +152,8 @@ a managed sandbox. They use private D-Bus sessions and temporary XDG state and
 never install into or configure the working desktop. Both native fixtures select
 local GIO VFS; the Shell fixture checks its local URI capabilities before
 behavioral tests and unmounts its private document portal before D-Bus shutdown.
+The launcher supplies all temporary XDG paths before starting D-Bus. The session
+script refuses mismatched paths before running any desktop settings command.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |
@@ -203,13 +205,19 @@ gnome-extensions prefs k-switch@bug.guru
 To return to the original setup, disable K-switch and re-enable the previous
 extension. Repository checks never install or enable it in the working desktop.
 
-Preferences verify GNOME Shell's cached `GetExtensionInfo` version against their
-own code version and the installed `metadata.json` **before loading or migrating
-configuration**. If they differ, editing and import/export are unavailable: a
+Preferences query a version method provided by the active runtime code, rather
+than trusting Shell's cached metadata. For an inactive extension they use Shell's
+metadata; enabling cached code also checks the installed version before opening
+settings or acquiring resources. These versions must match the preferences code
+and installed `metadata.json` **before loading or migrating configuration**.
+If they differ, editing and import/export are unavailable: a
 status screen lists all three versions and asks you to log out and sign in again.
 Saved groups are preserved. Updates while the window is open also trigger this
 check. A failed version query keeps editing blocked and provides **Check again**.
 An inactive extension with matching versions can still be configured.
+Pending file dialogs are cancelled when editing is blocked or the window closes.
+Import/export recheck the versions immediately before writing, so a late dialog
+completion cannot bypass the guard or replace a file after cancellation.
 
 Seeing **All layouts** only in the panel, or errors mentioning
 `allSkip,groupShortcut,groups,shortcut,showIndicator,version`, means the Shell is
@@ -225,7 +233,7 @@ it cannot retrofit itself into a window already executing older code.
 K-switch is distributed through [GitHub](https://github.com/dima-fedotovs/k-switch).
 Versions below 1.0 are pre-releases; check the repository's Releases page for
 published artifacts. No EGO publication is configured.
-All 26 unit tests pass; group policy, migration and configuration validation have
+Unit tests cover group policy, migration and configuration validation with
 100% core coverage in all four metrics.
 Native checks exercise sticky unassigned sources, group overlap/order, separate
 short/long names, optional source display, indicator selection/visibility, real
@@ -238,7 +246,9 @@ three-group scrolling regression with focused/unfocused controls, rapid checkbox
 edits and external settings updates.
 The preferences guard is exercised against a private D-Bus Shell service,
 including an old runtime, matching inactive runtime, updates with the window
-open, missing version information and retry. Fresh GSettings checks cover zero,
+open, metadata/runtime disagreement, missing runtime APIs and retry. Controlled
+file-dialog completions exercise cancellation on update/close, version changes
+before writing, and successful import/export. Fresh GSettings checks cover zero,
 one, two and three configured sources, IBus-first ordering and legacy overrides.
 Indicator tests toggle both options repeatedly with the menu open and ensure
 activating a group retains its menu item until event handling completes.

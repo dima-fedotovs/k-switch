@@ -4,6 +4,7 @@ import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { ACTION_INTERFACE, ACTION_PATH } from '../shared/system-shortcuts.js';
 import type { GroupController } from './groups.js';
+import { VERSION } from '../shared/release.js';
 
 export class GroupActions {
   readonly #exported: Gio.DBusExportedObject;
@@ -19,8 +20,9 @@ export class GroupActions {
       }
     };
     this.#exported = Gio.DBusExportedObject.wrapJSObject(
-      `<node><interface name="${ACTION_INTERFACE}"><method name="NextGroup"/><method name="PreviousGroup"/></interface></node>`,
+      `<node><interface name="${ACTION_INTERFACE}"><method name="NextGroup"/><method name="PreviousGroup"/><method name="GetRuntimeVersion"><arg type="s" direction="out"/></method></interface></node>`,
       {
+        GetRuntimeVersion: (): string => VERSION,
         NextGroup: (): void => {
           activate(1);
         },

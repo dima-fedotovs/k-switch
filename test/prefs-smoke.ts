@@ -303,7 +303,7 @@ application.connect('activate', () => {
 async function runWindow(settings: Gio.Settings, desktop: Gio.Settings): Promise<void> {
   synchronize(settings, desktop);
   const window = new Adw.PreferencesWindow({ application, title: 'K-switch' });
-  buildPreferences(window, settings);
+  buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
   window.present();
   try {
     await settle();

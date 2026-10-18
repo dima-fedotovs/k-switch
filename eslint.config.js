@@ -52,6 +52,7 @@ export default tseslint.config(
       'src/prefs/**/*.ts',
       'test/prefs-smoke.ts',
       'test/session-guard-smoke.ts',
+      'test/transfer-smoke.ts',
     ],
     rules: {
       // GNOME Shell 50 still supplies this host window in fillPreferencesWindow().

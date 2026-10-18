@@ -14,11 +14,12 @@ import { groupEditor, type EditorContext } from './editor.js';
 import { focusName, restoreFocus } from './focus.js';
 import { action } from './reorder.js';
 import { switchingEditor } from './switching.js';
-import { exportConfiguration, importConfiguration } from './transfer.js';
+import { exportConfiguration, importConfiguration, type TransferAccess } from './transfer.js';
 
 function transferGroup(
   window: Adw.PreferencesWindow,
   settings: Gio.Settings,
+  access: TransferAccess,
 ): Adw.PreferencesGroup {
   const group = new Adw.PreferencesGroup({ title: 'Move settings between computers' });
   const row = new Adw.ActionRow({
@@ -31,7 +32,7 @@ function transferGroup(
   ] as const) {
     const button = new Gtk.Button({ label, valign: Gtk.Align.CENTER });
     button.connect('clicked', () => {
-      callback(window, settings);
+      callback(window, settings, access);
     });
     row.add_suffix(button);
   }
@@ -87,11 +88,12 @@ class PreferencesEditor {
   #syncing = false;
   #pending: number | null = null;
   readonly #closeSignal: number;
+  readonly #transfers = new Gio.Cancellable();
 
-  constructor(window: Adw.PreferencesWindow, settings: Gio.Settings) {
+  constructor(window: Adw.PreferencesWindow, settings: Gio.Settings, verify: () => Promise<void>) {
     this.#window = window;
     this.#settings = settings;
-    this.#transfer = transferGroup(window, settings);
+    this.#transfer = transferGroup(window, settings, { cancellable: this.#transfers, verify });
     window.set_default_size(760, 850);
     window.add(this.#groupsPage);
     window.add(this.#switchingPage);
@@ -203,6 +205,7 @@ class PreferencesEditor {
   }
 
   destroy(): void {
+    this.#transfers.cancel();
     this.#window.disconnect(this.#closeSignal);
     for (const signal of this.#signals.splice(0)) {
       signal.settings.disconnect(signal.id);
@@ -220,8 +223,9 @@ class PreferencesEditor {
 export function buildPreferences(
   window: Adw.PreferencesWindow,
   settings: Gio.Settings,
+  verify: () => Promise<void>,
 ): () => void {
-  const editor = new PreferencesEditor(window, settings);
+  const editor = new PreferencesEditor(window, settings, verify);
   return (): void => {
     editor.destroy();
   };
