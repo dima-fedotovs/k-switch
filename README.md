@@ -306,6 +306,11 @@ A tag such as `v0.4.0` reruns the complete hosted gate. The tag must match all p
 version declarations and refer to a commit from main. Versions below 1.0 and
 versions with a prerelease suffix are marked as pre-releases. Failed checks do
 not publish a release. A repeated run cannot replace an existing release.
+The checkout and remote tag's peeled commit must equal the commit resolved from
+the immutable workflow event SHA, including annotated tags. The remote reference is checked again just
+before publishing; moved, deleted and off-main tags stop the release. The
+repository also protects `v*` tags against updates and deletion without bypasses;
+the policy is recorded in `.github/release-tag-ruleset.json` for maintainers.
 
 The verified ZIP, SHA256SUMS and CycloneDX SBOM are attached to the release.
 The SBOM inventories npm build/development dependencies, not code bundled into

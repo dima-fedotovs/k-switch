@@ -36,6 +36,8 @@ Read README.md and CONTRIBUTING.md before modifying this project.
 
 - Publish only to GitHub. Tags must pass the complete CI gate before releases.
   Do not publish to EGO, replace published assets, or push archive/pre-squash.
+  Keep release tags immutable; verify their remote peeled commit against the
+  immutable workflow event SHA again immediately before publishing assets.
 - Source match approvals must bind the exact source SHA256 and match fields.
   Scanner errors, partial reports and unreviewed matches fail closed.
   Run SCANOSS locally before tagging; never invoke it in GitHub Actions. Hosted

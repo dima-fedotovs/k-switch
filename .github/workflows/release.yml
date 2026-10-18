@@ -56,4 +56,5 @@ jobs:
           Verify downloads with `sha256sum --check SHA256SUMS` and `gh attestation verify k-switch@bug.guru.shell-extension.zip --repo dima-fedotovs/k-switch`.
           The CycloneDX inventory covers npm build/development dependencies, which are not bundled in the extension ZIP.
           NOTES
+          node .build/scripts/release-tools.js verify-tag
           gh release create "$TAG" release-assets/* --verify-tag --title "K-switch $VERSION" --notes-file "$RUNNER_TEMP/release-notes.md" "${args[@]}"

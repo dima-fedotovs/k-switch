@@ -3,28 +3,35 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { VERSION, UUID } from '../src/shared/release.js';
 import { object, releaseVersion, sha256, list } from './security-policy.js';
+import { verifyReleaseRef } from './release-ref.js';
 
 function json(path: string): Record<string, unknown> {
   const value: unknown = JSON.parse(readFileSync(path, 'utf8'));
   return object(value);
 }
 
-if (process.argv[2] === 'validate') {
+function verifyTag(): void {
   if (process.env.GITHUB_REF_TYPE !== 'tag') {
     throw new Error('Releases require a version tag.');
   }
-  execFileSync('git', ['merge-base', '--is-ancestor', 'HEAD', 'origin/main']);
+  verifyReleaseRef(process.env.GITHUB_REF_NAME ?? '', process.env.GITHUB_SHA ?? '');
+}
+
+if (process.argv[2] === 'validate') {
   const tag = process.env.GITHUB_REF_NAME ?? '';
   const result = releaseVersion(tag, [
     String(json('package.json').version),
     String(json('metadata.json')['version-name']),
     VERSION,
   ]);
+  verifyTag();
   const output = process.env.GITHUB_OUTPUT;
   if (output === undefined) {
     throw new Error('Missing workflow output destination.');
   }
   appendFileSync(output, `version=${result.version}\nprerelease=${String(result.prerelease)}\n`);
+} else if (process.argv[2] === 'verify-tag') {
+  verifyTag();
 } else if (process.argv[2] === 'assets') {
   const bom = object(
     JSON.parse(
@@ -55,5 +62,5 @@ if (process.argv[2] === 'validate') {
     names.map((name) => `${sha256(readFileSync(`artifacts/${name}`))}  ${name}\n`).join(''),
   );
 } else {
-  throw new Error('Choose validate or assets.');
+  throw new Error('Choose validate, verify-tag or assets.');
 }
