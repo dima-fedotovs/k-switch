@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { closeSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
 const identity = randomUUID();
 const source = `src/core/quality-probe-${identity}.ts`;
@@ -24,17 +24,16 @@ function writeProbe(path: string, contents: string): void {
 
 function reject(label: string, command: string, args: readonly string[], expected: RegExp): void {
   const log = `artifacts/quality-${label.replaceAll(' ', '-')}.log`;
-  const descriptor = openSync(log, 'w');
-  const result = spawnSync(command, args, { stdio: ['ignore', descriptor, descriptor] });
-  closeSync(descriptor);
+  const result = spawnSync(command, args, {
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+  writeFileSync(log, output);
   assert.equal(result.error, undefined, `${label}: checker must start`);
   assert.notEqual(result.status, null, `${label}: checker must finish normally`);
   assert.notEqual(result.status, 0, `${label}: bad changes must be rejected`);
-  assert.match(
-    readFileSync(log, 'utf8'),
-    expected,
-    `${label}: must reject for the intended reason`,
-  );
+  assert.match(output, expected, `${label}: must reject for the intended reason`);
   process.stdout.write(`Verified rejection: ${label}\n`);
 }
 
