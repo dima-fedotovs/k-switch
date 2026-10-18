@@ -81,6 +81,10 @@ system schemas are unavailable, locked, or the reserved path belongs to another
 command, a notification explains that extension-local bindings are used instead;
 those fallback bindings do not appear in GNOME Settings. An accelerator already
 owned by another component may be unavailable; choose another combination.
+Losing ownership while enabled also switches to local bindings and reports the
+change. Only the affected action changes transport; other system actions keep
+their existing keyboard grabs.
+Removing both system actions clears both assignments in one update.
 
 While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group

@@ -10,6 +10,7 @@ import { GroupActions } from './actions.js';
 import {
   createSystemShortcuts,
   SHORTCUT_ACTIONS,
+  type ShortcutAction,
   type SystemShortcuts,
 } from '../shared/system-shortcuts.js';
 import { GroupController } from './groups.js';
@@ -50,9 +51,15 @@ export class Session {
     this.#override = interceptSwitching(() => this.#controller?.within());
     this.#applyOptions();
     this.#actions = new GroupActions(this.#controller);
-    this.#systemShortcuts = createSystemShortcuts(this.#settings, (error) => {
-      Main.notifyError('K-switch', String(error));
-    });
+    this.#systemShortcuts = createSystemShortcuts(
+      this.#settings,
+      (error) => {
+        Main.notifyError('K-switch', String(error));
+      },
+      (actions) => {
+        this.#bindLocal(actions);
+      },
+    );
     if (!this.#systemShortcuts?.start()) {
       this.#bindLocal();
     }
@@ -98,12 +105,12 @@ export class Session {
     }
   }
 
-  #bindLocal(): void {
+  #bindLocal(actions: readonly ShortcutAction[] = SHORTCUT_ACTIONS): void {
     Main.notifyError(
       'K-switch',
       'System custom shortcuts are unavailable. Configure group shortcuts in K-switch.',
     );
-    for (const action of SHORTCUT_ACTIONS) {
+    for (const action of actions) {
       this.#bound.push(action.key);
       Main.wm.addKeybinding(
         action.key,

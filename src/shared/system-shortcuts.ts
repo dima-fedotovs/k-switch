@@ -22,6 +22,7 @@ export const SHORTCUT_ACTIONS = [
     id: 'previous',
   },
 ] as const;
+export type ShortcutAction = (typeof SHORTCUT_ACTIONS)[number];
 
 interface Binding {
   readonly action: (typeof SHORTCUT_ACTIONS)[number];
@@ -33,15 +34,22 @@ interface Binding {
 export class SystemShortcuts {
   readonly #settings: Gio.Settings;
   readonly #onError: (error: unknown) => void;
+  readonly #onUnavailable: (actions: readonly ShortcutAction[]) => void;
   readonly #parent = new Gio.Settings({ schema_id: SCHEMA });
   readonly #entries: readonly Binding[];
   readonly #signals: { settings: Gio.Settings; id: number }[] = [];
   #syncing = false;
   #started = false;
+  readonly #local = new Set<string>();
 
-  constructor(settings: Gio.Settings, onError: (error: unknown) => void) {
+  constructor(
+    settings: Gio.Settings,
+    onError: (error: unknown) => void,
+    onUnavailable: (actions: readonly ShortcutAction[]) => void,
+  ) {
     this.#settings = settings;
     this.#onError = onError;
+    this.#onUnavailable = onUnavailable;
     this.#entries = SHORTCUT_ACTIONS.map((action) => {
       const path = `/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/k-switch-${action.id}/`;
       return {
@@ -151,11 +159,18 @@ export class SystemShortcuts {
     if (this.#syncing) {
       return;
     }
+    if (this.#takeovers().length > 0) {
+      this.#pull();
+      return;
+    }
     this.#syncing = true;
     try {
       const configuration = readConfiguration(this.#settings);
       const paths = this.#parent.get_strv('custom-keybindings');
       for (const entry of this.#entries) {
+        if (this.#local.has(entry.action.id)) {
+          continue;
+        }
         this.#restore(entry, configuration[entry.action.field], paths);
         if (!this.#owned(entry)) {
           continue;
@@ -193,6 +208,9 @@ export class SystemShortcuts {
       const updated = { ...configuration };
       const paths = this.#parent.get_strv('custom-keybindings');
       for (const entry of this.#entries) {
+        if (this.#local.has(entry.action.id)) {
+          continue;
+        }
         updated[entry.action.field] =
           paths.includes(entry.path) && this.#owned(entry)
             ? entry.settings.get_string('binding')
@@ -204,16 +222,33 @@ export class SystemShortcuts {
     } finally {
       this.#syncing = false;
     }
+    const takeovers = this.#takeovers();
+    if (this.#started && takeovers.length > 0) {
+      for (const entry of takeovers) {
+        this.#local.add(entry.action.id);
+      }
+      this.#onUnavailable(takeovers.map((entry) => entry.action));
+    }
+  }
+
+  #takeovers(): readonly Binding[] {
+    return this.#entries.filter(
+      (entry) =>
+        !this.#local.has(entry.action.id) &&
+        entry.settings.get_string('command') !== '' &&
+        !this.#owned(entry),
+    );
   }
 }
 
 export function createSystemShortcuts(
   settings: Gio.Settings,
   onError: (error: unknown) => void,
+  onUnavailable: (actions: readonly ShortcutAction[]) => void,
 ): SystemShortcuts | null {
   const source = Gio.SettingsSchemaSource.get_default();
   if (!source?.lookup(SCHEMA, true) || !source.lookup(CUSTOM_SCHEMA, true)) {
     return null;
   }
-  return new SystemShortcuts(settings, onError);
+  return new SystemShortcuts(settings, onError, onUnavailable);
 }
