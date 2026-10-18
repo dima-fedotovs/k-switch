@@ -119,9 +119,11 @@ state and are not exported.
 
 ## Development and architecture
 
-Requirements: Node.js 22.19 or newer in the 22.x series, npm, GJS, GNOME's
+Requirements: Node.js 24.22 or newer in the 24.x series, npm, GJS, GNOME's
 `gnome-extensions` CLI, and `glib-compile-schemas`. Native UI checks also use
-Xvfb, D-Bus and ImageMagick's `import` command.
+Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
+compilation and typed linting. `.nvmrc` pins the tested Node 24.22.0 patch so CI
+uses the same runtime instead of an older preinstalled 24.x release.
 
 ```sh
 npm ci
@@ -250,7 +252,7 @@ Changes to main go through pull requests with required green checks. Dependabot
 updates npm and Actions dependencies weekly; security checks also run weekly.
 Compatible npm updates and Actions updates are grouped to limit PR noise. Major
 Node typings and TypeScript upgrades require a coordinated runtime/linter change:
-Node typings follow Node 22, and the pinned typescript-eslint supports TypeScript
+Node typings follow Node 24, and the pinned typescript-eslint supports TypeScript
 below 6.1. Hosted quality checks upload/download the release assets and verify
 their hashes before publication.
 Actions are pinned to full commits, and only the release job has publication
