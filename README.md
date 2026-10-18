@@ -146,8 +146,8 @@ npm run test:shell
 Socket/display integration checks require escalation on their first attempt in
 a managed sandbox. They use private D-Bus sessions and temporary XDG state and
 never install into or configure the working desktop. Both native fixtures select
-local GIO VFS so GVfs/FUSE mounts cannot outlive their private D-Bus connection;
-the Shell fixture checks its local URI capabilities before behavioral tests.
+local GIO VFS; the Shell fixture checks its local URI capabilities before
+behavioral tests and unmounts its private document portal before D-Bus shutdown.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |

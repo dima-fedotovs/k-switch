@@ -18,7 +18,15 @@ gsettings set org.gnome.desktop.input-sources xkb-options "['compose:ralt','grp:
 gsettings set org.gnome.shell enabled-extensions "['k-switch@bug.guru']"
 gnome-shell --headless --wayland --no-x11 --virtual-monitor 1280x900 --mode=user > "$test_root/shell.log" 2>&1 &
 shell_pid=$!
-trap 'kill "$shell_pid" 2>/dev/null || true; wait "$shell_pid" 2>/dev/null || true' EXIT
+cleanup() {
+  kill "$shell_pid" 2> /dev/null || true
+  wait "$shell_pid" 2> /dev/null || true
+  if mountpoint --quiet "$XDG_RUNTIME_DIR/doc"; then
+    echo "Unmounting private document portal before D-Bus shutdown"
+    fusermount3 -u "$XDG_RUNTIME_DIR/doc"
+  fi
+}
+trap cleanup EXIT
 for ((attempt = 0; attempt < 180; attempt++)); do
   if test -f "$K_SWITCH_RESULT"; then
     sleep 0.5
