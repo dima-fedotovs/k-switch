@@ -2,8 +2,16 @@
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkLicenses, checkProvenance, object, sha256, list } from './security-policy.js';
+import {
+  checkLicenses,
+  checkProvenance,
+  localProvenance,
+  object,
+  sha256,
+  list,
+} from './security-policy.js';
 
+const provenance = localProvenance(process.argv.slice(2), process.env.GITHUB_ACTIONS === 'true');
 const root = 'artifacts/security';
 const source = `${root}/source`;
 const code = `${root}/code`;
@@ -15,7 +23,7 @@ const paths = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
 for (const path of paths) {
   mkdirSync(join(source, path, '..'), { recursive: true });
   cpSync(path, join(source, path));
-  if (/^(src|test|scripts)\/.*\.(ts|js|sh)$/u.test(path)) {
+  if (provenance && /^(src|test|scripts)\/.*\.(ts|js|sh)$/u.test(path)) {
     mkdirSync(join(code, path, '..'), { recursive: true });
     cpSync(path, join(code, path));
   }
@@ -64,33 +72,38 @@ function licenses(path: string, base: string): void {
   );
   checkLicenses(report, json('security/licenses.json'), hashes);
 }
-// The only network scan consumes this WFP, never a source folder or dependency tree.
-run('scanoss-py', ['wfp', '-o', `${root}/source.wfp`, code]);
-run('scanoss-py', ['scan', '-w', `${root}/source.wfp`, '-o', `${root}/provenance.json`]);
 licenses(`${root}/source-licenses.json`, root);
 licenses(`${root}/zip-licenses.json`, '.');
-const files = Object.fromEntries(
-  [...readFileSync(`${root}/source.wfp`, 'utf8').matchAll(/^file=[^,]+,[^,]+,(.+)$/gmu)].map(
-    (match) => {
-      const path = match[1];
-      if (path === undefined || path.startsWith('/') || path.split('/').includes('..')) {
-        throw new Error('Unexpected fingerprint path.');
-      }
-      return [path, sha256(readFileSync(join(source, path)))];
-    },
-  ),
-);
-checkProvenance(
-  json(`${root}/provenance.json`),
-  files,
-  object(json('security/provenance.json')).approvals,
-);
+function scanProvenance(): number {
+  // The only network scan consumes this WFP, never a source folder or dependency tree.
+  run('scanoss-py', ['wfp', '-o', `${root}/source.wfp`, code]);
+  run('scanoss-py', ['scan', '-w', `${root}/source.wfp`, '-o', `${root}/provenance.json`]);
+  const files = Object.fromEntries(
+    [...readFileSync(`${root}/source.wfp`, 'utf8').matchAll(/^file=[^,]+,[^,]+,(.+)$/gmu)].map(
+      (match) => {
+        const path = match[1];
+        if (path === undefined || path.startsWith('/') || path.split('/').includes('..')) {
+          throw new Error('Unexpected fingerprint path.');
+        }
+        return [path, sha256(readFileSync(join(source, path)))];
+      },
+    ),
+  );
+  checkProvenance(
+    json(`${root}/provenance.json`),
+    files,
+    object(json('security/provenance.json')).approvals,
+  );
+  return Object.keys(files).length;
+}
+const fingerprintedFiles = provenance ? scanProvenance() : 0;
 writeFileSync(
   `${root}/summary.json`,
   JSON.stringify(
     {
-      files: Object.keys(files).length,
-      provenance: 'reviewed',
+      files: paths.length,
+      fingerprintedFiles,
+      provenance: provenance ? 'reviewed' : 'local-only-not-run',
       licenses: 'reviewed',
       secrets: 'none',
     },

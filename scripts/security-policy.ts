@@ -31,6 +31,19 @@ export function matchHash(value: unknown): string {
   );
 }
 
+export function localProvenance(args: readonly string[], hosted: boolean): boolean {
+  if (args.length === 1 && args[0] === '--ci') {
+    return false;
+  }
+  if (args.length > 0) {
+    throw new Error('Expected no arguments for local scanning or --ci for hosted checks.');
+  }
+  if (hosted) {
+    throw new Error('SCANOSS is local-only; GitHub Actions must use security:ci.');
+  }
+  return true;
+}
+
 export function checkProvenance(
   report: unknown,
   files: Readonly<Record<string, string>>,
