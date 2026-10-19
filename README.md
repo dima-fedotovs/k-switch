@@ -88,8 +88,9 @@ Removing both system actions clears both assignments in one update.
 
 While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group
-options unless independently changed. Caps remaps and the competing Switch Two
-Layouts extension are detected; do not run both switchers together.
+options unless independently changed. Caps remaps, including the combined
+Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
+The competing Switch Two Layouts extension is detected; do not run both switchers together.
 
 ## Configuration and migration
 

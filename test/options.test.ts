@@ -60,6 +60,7 @@ void test('identifies Caps remaps without confusing unrelated options', () => {
     'caps:escape',
     'ctrl:nocaps',
     'ctrl:swapcaps',
+    'ctrl:grouptoggle_capscontrol',
     'ctrl:hyper_capscontrol',
     'compose:caps',
     'compose:caps-altgr',

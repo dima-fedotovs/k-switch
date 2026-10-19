@@ -126,8 +126,38 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   checked.push('Three enable/disable cycles without duplicate handlers');
   await competingExtension(extension, checked);
   await shortcutTakeover(extension, checked);
+  capsConflictCheck(extension, checked);
   cachedRuntimeCheck(extension, checked);
   return checked;
+}
+
+function capsConflictCheck(extension: TestExtension, checked: string[]): void {
+  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
+  const settings = extension.getSettings();
+  const options = desktop.get_strv('xkb-options');
+  const configuration = readConfiguration(settings);
+  const conflict = 'ctrl:grouptoggle_capscontrol';
+  try {
+    writeConfiguration(settings, { ...configuration, shortcut: 'caps' });
+    desktop.set_strv('xkb-options', [conflict]);
+    let rejected = false;
+    try {
+      extension.enable();
+    } catch (error) {
+      rejected = String(error).includes(conflict);
+    }
+    check(rejected, 'The Caps-to-Ctrl group toggle must reject startup');
+    check(
+      desktop.get_strv('xkb-options').join(',') === conflict,
+      'Rejected startup preserves the conflicting user option',
+    );
+    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup leaves no indicator');
+  } finally {
+    extension.disable();
+    desktop.set_strv('xkb-options', options);
+    writeConfiguration(settings, configuration);
+  }
+  checked.push('Caps-to-Ctrl group-toggle conflict rejects startup and releases resources');
 }
 
 function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
