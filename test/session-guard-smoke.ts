@@ -291,12 +291,21 @@ async function verifyActiveRuntime(
   shell.state = 1;
   for (const [runtime, title] of [
     ['0.2.1', 'Log out and sign in again'],
+    ['<runtime>&100%', 'Log out and sign in again'],
     [null, 'Cannot verify GNOME Shell version'],
   ] as const) {
     shell.runtimeVersion = runtime;
     retry(window);
     await settle();
     status(window, title);
+    if (runtime === '<runtime>&100%') {
+      check(
+        widgets(window).some(
+          (item) => item instanceof Gtk.Label && item.get_text().includes(runtime),
+        ),
+        'Version diagnostics render literally instead of Pango markup',
+      );
+    }
     check(settings.get_string('configuration') === '', 'Active code must match before migration');
   }
   shell.runtimeVersion = VERSION;

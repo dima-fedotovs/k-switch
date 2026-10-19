@@ -207,7 +207,9 @@ class PreferencesEditor {
   }
 
   #error(error: unknown): void {
-    this.#window.add_toast(new Adw.Toast({ title: errorText(error), timeout: 8 }));
+    this.#window.add_toast(
+      new Adw.Toast({ use_markup: false, title: errorText(error), timeout: 8 }),
+    );
   }
 
   destroy(): void {

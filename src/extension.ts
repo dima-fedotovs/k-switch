@@ -2,6 +2,7 @@
 // Generated with AI for personal use.
 // Do NOT upload to extensions.gnome.org (EGO) unless you understand JavaScript
 // and can maintain this code.
+import { GETTEXT_DOMAIN } from './shared/release.js';
 import { _, text, errorText } from './shared/i18n.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import Gio from 'gi://Gio';
@@ -17,6 +18,7 @@ export default class KSwitch extends Extension {
   #versionService: RuntimeVersionService | null = null;
 
   override enable(): void {
+    this.initTranslations(GETTEXT_DOMAIN);
     const request = new Gio.Cancellable();
     this.#request = request;
     this.#versionService = new RuntimeVersionService();

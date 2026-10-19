@@ -2,6 +2,7 @@
 import { _, text, errorText } from '../shared/i18n.js';
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import { UUID, VERSION } from '../shared/release.js';
 import { shellVersion } from '../shared/shell-version.js';
@@ -163,7 +164,7 @@ class SessionGuard {
       this.#added = true;
     }
     this.#status.title = title;
-    this.#status.description = description;
+    this.#status.description = GLib.markup_escape_text(description, -1);
   }
 }
 

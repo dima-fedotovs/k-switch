@@ -13,7 +13,11 @@ assert(
   typeof release === 'object' &&
     release !== null &&
     'VERSION' in release &&
-    typeof release.VERSION === 'string',
+    typeof release.VERSION === 'string' &&
+    'UUID' in release &&
+    typeof release.UUID === 'string' &&
+    'GETTEXT_DOMAIN' in release &&
+    typeof release.GETTEXT_DOMAIN === 'string',
 );
 const version = release.VERSION;
 
@@ -65,6 +69,12 @@ assert(
     'version' in manifest &&
     manifest.version === version,
   'Package version must match code',
+);
+assert(
+  metadata.uuid === release.UUID &&
+    'gettext-domain' in metadata &&
+    metadata['gettext-domain'] === release.GETTEXT_DOMAIN,
+  'Compiled UUID and gettext domain must match metadata',
 );
 const archive = `artifacts/${metadata.uuid}.shell-extension.zip`;
 const contents = unzipSync(readFileSync(archive));

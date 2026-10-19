@@ -21,7 +21,8 @@ There is no automatically generated All layouts group.
 
 Short names and nonempty long names must each be unique, ignoring case,
 surrounding spaces and Unicode composition. Empty long names can repeat.
-Names containing `&`, `<` or `>` are displayed literally. Keyboard focus follows
+Names containing `&`, `<` or `>` are displayed literally. Error diagnostics also
+use plain text, including invalid imported values and version strings. Keyboard focus follows
 stable group/source IDs when controls are rebuilt, including after a rename.
 
 - Within a group, cycle through checked, currently available sources in order.
@@ -89,7 +90,8 @@ Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
 
 The interface follows the GNOME environment's language automatically. English is
 the source/fallback; Russian and Latvian catalogs cover all application messages,
-including notifications, validation and accessible descriptions. There is no
+including notifications, validation and accessible descriptions. Update warnings
+are localized even when Shell metadata was cached before translations were added. There is no
 separate language selector. Keyboard sources are independent of UI language.
 
 Automatic group names are translated once, when created, and checked for

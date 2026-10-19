@@ -345,6 +345,36 @@ async function liveShortcutChecks(
   const active = settings.get_string('active-group');
   await pressKeys(keyboard, [125, 56, 49]);
   check(settings.get_string('active-group') === active, 'An empty assignment releases its key');
+  await groupModeChecks(settings, keyboard);
+}
+
+async function groupModeChecks(
+  settings: Gio.Settings,
+  keyboard: Clutter.VirtualInputDevice,
+): Promise<void> {
+  const configuration = readConfiguration(settings);
+  writeConfiguration(settings, { ...configuration, groupShortcut: 'F8' });
+  try {
+    for (const visible of [false, true]) {
+      if (visible) {
+        Main.overview.show();
+      } else {
+        Main.overview.hide();
+      }
+      await settle();
+      await settle();
+      const active = settings.get_string('active-group');
+      await pressKeys(keyboard, [66]);
+      check(
+        settings.get_string('active-group') !== active,
+        `Direct F8 binding works with overview=${String(visible)}`,
+      );
+    }
+  } finally {
+    Main.overview.hide();
+    writeConfiguration(settings, configuration);
+    await settle();
+  }
 }
 
 async function indicatorChecks(settings: Gio.Settings): Promise<void> {

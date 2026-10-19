@@ -26,7 +26,7 @@ function showError(
   if (error instanceof GLib.Error && error.matches(Gtk.DialogError, Gtk.DialogError.DISMISSED)) {
     return;
   }
-  window.add_toast(new Adw.Toast({ title: errorText(error), timeout: 8 }));
+  window.add_toast(new Adw.Toast({ use_markup: false, title: errorText(error), timeout: 8 }));
 }
 
 export function exportConfiguration(
@@ -86,7 +86,7 @@ async function exportFile(
   await access.verify();
   if (!access.cancellable.is_cancelled()) {
     writeConfigurationFile(file, readConfiguration(settings));
-    window.add_toast(new Adw.Toast({ title: _('Settings exported') }));
+    window.add_toast(new Adw.Toast({ use_markup: false, title: _('Settings exported') }));
   }
 }
 
@@ -124,5 +124,5 @@ async function importFile(
     removed.length === 0
       ? _('Settings imported')
       : text('Imported; unavailable sources removed: %s', removed.join(', '));
-  window.add_toast(new Adw.Toast({ title, timeout: 8 }));
+  window.add_toast(new Adw.Toast({ use_markup: false, title, timeout: 8 }));
 }

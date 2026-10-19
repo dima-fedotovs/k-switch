@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gettext from 'gettext';
+import { GETTEXT_DOMAIN } from './release.js';
 import { formatMessage, MessageError } from '../core/messages.js';
 
 export function _(template: string): string {
-  return Gettext.dgettext('k-switch', template);
+  return Gettext.dgettext(GETTEXT_DOMAIN, template);
 }
 
 export function text(template: string, ...parameters: string[]): string {

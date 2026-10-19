@@ -13,6 +13,8 @@ import {
 } from '../src/shared/settings.js';
 import { _, text, errorText } from '../src/shared/i18n.js';
 import { MessageError } from '../src/core/messages.js';
+import { UUID, VERSION } from '../src/shared/release.js';
+import { ShellVersionFixture } from './shell-version-fixture.js';
 
 function check(value: boolean, message: string): void {
   if (!value) {
@@ -138,6 +140,57 @@ async function verifySwitching(window: Adw.PreferencesWindow): Promise<void> {
   }
 }
 
+async function verifyCachedHost(settings: Gio.Settings): Promise<void> {
+  const expected = _('Log out and sign in again');
+  const saved = settings.get_string('configuration');
+  const empty = GLib.dir_make_tmp('k-switch-empty-catalog-XXXXXX');
+  const path = `${GLib.get_current_dir()}/dist`;
+  const resource = Gio.Resource.load(
+    '/usr/share/gnome-shell/org.gnome.Shell.Extensions.src.gresource',
+  );
+  Gio.resources_register(resource);
+  const { default: Preferences } = await import('../src/prefs.js');
+  const shell = new ShellVersionFixture();
+  shell.version = VERSION;
+  const window = new Adw.PreferencesWindow({ title: 'Cached translations' });
+  try {
+    Gettext.bindtextdomain('k-switch', empty);
+    check(_('Groups') === 'Groups', 'Regression starts without a bound k-switch catalog');
+    const preferences = new Preferences({
+      uuid: UUID,
+      name: 'Cached translation host',
+      description: 'No gettext-domain in cached metadata',
+      'shell-version': ['50'],
+      'version-name': VERSION,
+      'settings-schema': 'old.schema',
+      dir: Gio.File.new_for_path(path),
+      path,
+    });
+    let calls = 0;
+    preferences.getSettings = (): Gio.Settings => {
+      calls += 1;
+      return settings;
+    };
+    await settle();
+    await preferences.fillPreferencesWindow(window);
+    window.present();
+    check(
+      widgets(window).some((item) => item instanceof Adw.StatusPage && item.title === expected),
+      'Cached metadata without gettext-domain must still show a translated guard',
+    );
+    check(
+      calls === 0 && settings.get_string('configuration') === saved,
+      'Localized guard still blocks before settings access',
+    );
+  } finally {
+    window.close();
+    shell.destroy();
+    Gio.resources_unregister(resource);
+    Gettext.bindtextdomain('k-switch', `${path}/locale`);
+    GLib.rmdir(empty);
+  }
+}
+
 Gettext.bindtextdomain('k-switch', `${GLib.get_current_dir()}/dist/locale`);
 const application = new Adw.Application({
   application_id: 'guru.bug.KSwitch.LocalizedTest',
@@ -159,7 +212,8 @@ application.connect('activate', () => {
   const window = new Adw.PreferencesWindow({ application, title: 'K-switch' });
   const dispose = buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
   window.present();
-  void verify(window, settings)
+  void verifyCachedHost(settings)
+    .then(() => verify(window, settings))
     .catch((error: unknown) => {
       failure = error;
     })
