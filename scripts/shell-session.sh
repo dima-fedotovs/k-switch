@@ -19,6 +19,7 @@ gsettings set org.gnome.shell enabled-extensions "['k-switch@bug.guru']"
 if test "${K_SWITCH_GDB:-0}" = 1; then
   G_DEBUG=fatal-criticals gdb --batch \
     -ex 'set pagination off' \
+    -ex 'set print thread-events off' \
     -ex 'set disable-randomization off' \
     -ex 'handle SIGTERM nostop noprint pass' \
     -ex run -ex 'thread apply all backtrace' \

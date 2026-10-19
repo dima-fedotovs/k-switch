@@ -52,6 +52,15 @@ export async function runShellChecks(extension: TestExtension): Promise<string[]
       Gio.Vfs.get_local().get_supported_uri_schemes().sort().join(','),
     'Shell fixture must use local GIO VFS',
   );
+  // GNOME may initially show the overview. Unassigned-key checks must start in
+  // the normal session so their keys cannot start an unrelated application search.
+  Main.overview.hide();
+  await settle();
+  await settle();
+  check(
+    Boolean(Main.actionMode & Shell.ActionMode.NORMAL),
+    'Keyboard fixture starts in normal mode',
+  );
   return runChecks(extension);
 }
 
