@@ -49,13 +49,13 @@
   },
   {
     "path": "scripts/security-policy.ts",
-    "sourceSha256": "40d745bf12f4df08b108320ed1f32cb63b32ceddc08d97f4c7d6e1b90526d055",
+    "sourceSha256": "1993f9c3aed8c665dcf28236783a8dd2d94d4a7cd5f68c377b6ecf3ef9eb3d6a",
     "expression": "JSON",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "scripts/security-scan.ts",
-    "sourceSha256": "3eac9345eee3595da758feb1928378a8a9d46655d264f1f442698d1fe0e37c3f",
+    "sourceSha256": "6355849224679b03c72f88fbf937def2120001754bcc257efcfee2dc1c1a14e9",
     "expression": "JSON",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },

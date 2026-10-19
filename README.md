@@ -304,7 +304,11 @@ synchronous Shell IO, unavailable/failing scanners and malformed/partial reports
 The quality job scans the final ZIP again before uploading release assets; the
 release workflow publishes that same artifact. Reports are retained in the
 `shexli-results` Actions artifact.
-Required scanner failures block CI. SCANOSS runs locally before a release,
+Required scanner failures block CI. ScanCode reports must match the exact input
+file inventory and include their result fields; directory-only, partial, duplicate
+or malformed reports and diagnostics are rejected before reading reported paths.
+The VCS metadata file `.gitignore` is scanned separately in explicit single-file
+mode because ScanCode skips it during directory traversal. SCANOSS runs locally before a release,
 separately from GitHub CI; no PR, scheduled or release job contacts its API.
 See [SECURITY.md](SECURITY.md) and [the source review](security/PROVENANCE.md).
 Scanner dependencies are hash-locked.

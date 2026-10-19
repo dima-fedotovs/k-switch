@@ -1,9 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import {
   checkLicenses,
+  checkScanCodeInventory,
   checkProvenance,
   localProvenance,
   object,
@@ -44,26 +53,18 @@ run('gitleaks', [
 ]);
 run('gitleaks', ['dir', '--redact=100', '--report-path', `${root}/source-secrets.json`, source]);
 run('gitleaks', ['dir', '--redact=100', '--report-path', `${root}/zip-secrets.json`, 'dist']);
-run('scancode', [
-  '-cl',
-  '--quiet',
-  '--processes',
-  '2',
-  '--json-pp',
-  `${root}/source-licenses.json`,
-  source,
-]);
-run('scancode', [
-  '-cl',
-  '--quiet',
-  '--processes',
-  '2',
-  '--json-pp',
-  `${root}/zip-licenses.json`,
-  'dist',
-]);
-function licenses(path: string, base: string): void {
+function scanLicenses(input: string, output: string): void {
+  run('scancode', ['-cl', '--quiet', '--processes', '2', '--json-pp', output, input]);
+}
+scanLicenses(source, `${root}/source-licenses.json`);
+// ScanCode's directory walker always skips .gitignore as VCS metadata. Explicit
+// single-file mode scans its exact bytes instead of excluding it from review.
+scanLicenses(`${source}/.gitignore`, `${root}/vcs-licenses.json`);
+scanLicenses('dist', `${root}/zip-licenses.json`);
+function licenses(path: string, base: string, expected: readonly string[]): void {
   const report = object(json(path));
+  // Check the trusted input inventory before using any reported path to read a file.
+  checkScanCodeInventory(report, expected);
   const hashes = Object.fromEntries(
     list(report.files)
       .map(object)
@@ -72,8 +73,19 @@ function licenses(path: string, base: string): void {
   );
   checkLicenses(report, json('security/licenses.json'), hashes);
 }
-licenses(`${root}/source-licenses.json`, root);
-licenses(`${root}/zip-licenses.json`, '.');
+licenses(
+  `${root}/source-licenses.json`,
+  root,
+  paths.filter((path) => path !== '.gitignore').map((path) => `source/${path}`),
+);
+licenses(`${root}/vcs-licenses.json`, source, ['.gitignore']);
+licenses(
+  `${root}/zip-licenses.json`,
+  '.',
+  readdirSync('dist', { recursive: true, encoding: 'utf8' })
+    .filter((path) => statSync(join('dist', path)).isFile())
+    .map((path) => `dist/${path}`),
+);
 function scanProvenance(): number {
   // The only network scan consumes this WFP, never a source folder or dependency tree.
   run('scanoss-py', ['wfp', '-o', `${root}/source.wfp`, code]);

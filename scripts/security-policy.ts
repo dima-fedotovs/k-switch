@@ -107,12 +107,47 @@ export function checkLicenses(
   }
 }
 
+export function checkScanCodeInventory(report: unknown, expected: readonly string[]): void {
+  const data = object(report);
+  const headers = list(data.headers).map(object);
+  if (
+    expected.length === 0 ||
+    headers.length !== 1 ||
+    headers[0]?.tool_name !== 'scancode-toolkit'
+  ) {
+    throw new Error('ScanCode requires a complete report for a nonempty input.');
+  }
+  const header = object(headers[0]);
+  if (list(header.errors).length > 0 || list(header.warnings).length > 0) {
+    throw new Error('ScanCode reported incomplete analysis or diagnostics.');
+  }
+  const scanned = list(data.files)
+    .map(object)
+    .flatMap((file) => {
+      if (file.type === 'directory') {
+        return [];
+      }
+      if (file.type !== 'file' || typeof file.path !== 'string') {
+        throw new Error('ScanCode returned an invalid file record.');
+      }
+      list(file.scan_errors);
+      list(file.license_detections);
+      return [file.path];
+    });
+  const actual = scanned.sort();
+  const wanted = [...expected].sort();
+  if (actual.length !== wanted.length || actual.some((path, index) => path !== wanted[index])) {
+    throw new Error('ScanCode file inventory is incomplete or inconsistent.');
+  }
+}
+
 function checkFileLicenses(
   file: Record<string, unknown>,
   approvals: readonly Record<string, unknown>[],
   hashes: Readonly<Record<string, string>>,
 ): void {
-  const path = String(file.path).split('/').slice(1).join('/');
+  const raw = String(file.path);
+  const path = raw.includes('/') ? raw.slice(raw.indexOf('/') + 1) : raw;
   // This declarative policy contains license names as data, not imported code.
   if (path === 'security/licenses.json') {
     return;

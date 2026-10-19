@@ -3,12 +3,46 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   checkLicenses,
+  checkScanCodeInventory,
   checkProvenance,
   checkSarif,
   matchHash,
   localProvenance,
   releaseVersion,
 } from '../scripts/security-policy.js';
+
+void test('ScanCode gate rejects directory-only, partial, duplicate and malformed file inventories', () => {
+  const header = { tool_name: 'scancode-toolkit', errors: [], warnings: [] };
+  const file = { path: 'source/a.ts', type: 'file', scan_errors: [], license_detections: [] };
+  const expected = ['source/a.ts'];
+  checkScanCodeInventory({ headers: [header], files: [file] }, expected);
+  for (const files of [
+    [],
+    [{ path: 'source', type: 'directory' }],
+    [file, file],
+    [{ ...file, path: '../unrelated' }],
+    [{ ...file, license_detections: undefined }],
+    [{ ...file, scan_errors: undefined }],
+    [{ ...file, type: 'unknown' }],
+  ]) {
+    assert.throws(() => {
+      checkScanCodeInventory({ headers: [header], files }, expected);
+    });
+  }
+  for (const headers of [
+    [],
+    [header, header],
+    [{ ...header, warnings: ['partial'] }],
+    [{ tool_name: 'unknown' }],
+  ]) {
+    assert.throws(() => {
+      checkScanCodeInventory({ headers, files: [file] }, expected);
+    });
+  }
+  assert.throws(() => {
+    checkScanCodeInventory({ headers: [header], files: [file] }, []);
+  });
+});
 
 void test('source matches require exact file and match approval; partial or malformed reports fail', () => {
   const match = { id: 'snippet', lines: '1-9', url: 'https://example.org/code' };
@@ -59,6 +93,21 @@ void test('license scanning must complete and unknown license detections require
       },
     ],
     { 'src/a.ts': 'exact' },
+  );
+  checkLicenses(
+    {
+      headers: [{ errors: [] }],
+      files: [{ path: '.gitignore', license_detections: [{ license_expression_spdx: 'MIT' }] }],
+    },
+    [
+      {
+        path: '.gitignore',
+        sourceSha256: 'exact',
+        expression: 'MIT',
+        reason: 'Reviewed single-file fixture',
+      },
+    ],
+    { '.gitignore': 'exact' },
   );
   assert.throws(() => {
     checkLicenses(
