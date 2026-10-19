@@ -18,11 +18,11 @@
       <summary>Optional shortcut to the previous layout group</summary>
     </key>
     <key name="first-source" type="s">
-      <default>'xkb:us'</default>
+      <default>''</default>
       <summary>First primary keyboard layout</summary>
     </key>
     <key name="second-source" type="s">
-      <default>'xkb:ru'</default>
+      <default>''</default>
       <summary>Second primary keyboard layout</summary>
     </key>
     <key name="shortcut" type="s">

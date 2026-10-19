@@ -104,6 +104,8 @@ saved input-source order, including IBus. Other sources start unchecked. With
 one source only that source is enabled; an empty list creates an empty group.
 There is no fixed US/RU default. Explicit legacy pair settings are migrated
 instead; existing group configurations are preserved.
+Legacy source keys have empty defaults. Only their explicitly saved, nonempty
+values are migrated; an unset legacy field never inserts a language.
 
 Existing pair preferences migrate to **Primary**, preserving order and the
 within-group shortcut. Version 2 group configurations preserve their group IDs,
@@ -259,6 +261,8 @@ open, metadata/runtime disagreement, missing runtime APIs and retry. Controlled
 file-dialog completions exercise cancellation on update/close, version changes
 before writing, and successful import/export. Fresh GSettings checks cover zero,
 one, two and three configured sources, IBus-first ordering and legacy overrides.
+A second private Shell starts without US or Russian sources and verifies fresh
+membership and real Caps cycling directly against its configured source order.
 Indicator tests toggle both options repeatedly with the menu open and ensure
 activating a group retains its menu item until event handling completes.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels

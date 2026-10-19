@@ -22,6 +22,8 @@ Read README.md and CONTRIBUTING.md before modifying this project.
 - Keep Caps Lock as the default within-group shortcut and Shift+Caps Lock for Caps.
 - Seed fresh membership from the first two saved GNOME sources, never fixed
   languages. Preserve explicit legacy overrides when migrating.
+  Legacy source keys must have empty defaults. Native setup checks must also
+  start without US/Russian sources and derive expectations from configured IDs.
 - Check Shell, preferences-code and on-disk versions before preferences can
   synchronize or write settings. Mismatches must preserve configuration and block
   editing until a matching session is available.

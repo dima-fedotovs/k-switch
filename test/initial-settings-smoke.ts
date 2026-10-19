@@ -10,6 +10,12 @@ function check(value: boolean, message: string): void {
 }
 
 export function verifyInitialSettings(settings: Gio.Settings, desktop: Gio.Settings): void {
+  check(
+    ['first-source', 'second-source'].every(
+      (key) => settings.get_default_value(key)?.get_string()[0] === '',
+    ),
+    'Legacy source keys must not assume any language by default',
+  );
   const sources: [string, string][] = [
     ['ibus', 'anthy'],
     ['xkb', 'de'],
@@ -81,8 +87,8 @@ function verifyStoredNames(settings: Gio.Settings, desktop: Gio.Settings): void 
 
 function verifyLegacy(settings: Gio.Settings, desktop: Gio.Settings): void {
   for (const [key, value, expected] of [
-    ['first-source', 'xkb:fr', ['xkb:fr', 'xkb:ru']],
-    ['second-source', 'xkb:de', ['xkb:us', 'xkb:de']],
+    ['first-source', 'xkb:fr', ['xkb:fr']],
+    ['second-source', 'xkb:de', ['xkb:de']],
   ] as const) {
     settings.reset('configuration');
     settings.set_string(key, value);
@@ -90,10 +96,18 @@ function verifyLegacy(settings: Gio.Settings, desktop: Gio.Settings): void {
       JSON.stringify(
         readConfiguration(settings).groups[0]?.entries.map((entry) => entry.source),
       ) === JSON.stringify(expected),
-      'Partially customized legacy pairs must preserve the other schema default',
+      'Only explicitly saved legacy sources are migrated',
     );
     settings.reset(key);
   }
+  settings.set_string('first-source', '');
+  settings.set_string('second-source', '');
+  check(
+    readConfiguration(settings).groups[0]?.entries.length === 3,
+    'Empty legacy values do not override saved system sources',
+  );
+  settings.reset('first-source');
+  settings.reset('second-source');
   settings.reset('configuration');
   settings.set_string('first-source', 'xkb:fr');
   settings.set_string('second-source', 'xkb:de');

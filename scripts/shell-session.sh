@@ -13,7 +13,7 @@ export LIBGL_ALWAYS_SOFTWARE=1
 unset DISPLAY WAYLAND_DISPLAY
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_STATE_HOME" "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
-gsettings set org.gnome.desktop.input-sources sources "[('xkb','us'),('xkb','ru'),('xkb','lv+tilde')]"
+gsettings set org.gnome.desktop.input-sources sources "${K_SWITCH_INITIAL_SOURCES:?Launcher must supply isolated fixture sources}"
 gsettings set org.gnome.desktop.input-sources xkb-options "['compose:ralt','grp:alt_shift_toggle']"
 gsettings set org.gnome.shell enabled-extensions "['k-switch@bug.guru']"
 gnome-shell --headless --wayland --no-x11 --virtual-monitor 1280x900 --mode=user > "$test_root/shell.log" 2>&1 &
