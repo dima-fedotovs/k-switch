@@ -49,7 +49,7 @@ function extensionInfo(uuid: string, cancellable: Gio.Cancellable): Promise<unkn
   });
 }
 
-function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
+export function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
   return new Promise((resolve, reject) => {
     Gio.DBus.session.call(
       'org.gnome.Shell',
@@ -70,22 +70,6 @@ function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
         }
       },
     );
-  });
-}
-
-export function installedVersion(file: Gio.File, cancellable: Gio.Cancellable): Promise<string> {
-  return new Promise((resolve, reject) => {
-    file.load_contents_async(cancellable, (_file, result) => {
-      try {
-        const [, contents] = file.load_contents_finish(result);
-        const value: unknown = JSON.parse(
-          new TextDecoder('utf-8', { fatal: true }).decode(contents),
-        );
-        resolve(versionName(value));
-      } catch (error) {
-        reject(error instanceof Error ? error : new Error(String(error)));
-      }
-    });
   });
 }
 

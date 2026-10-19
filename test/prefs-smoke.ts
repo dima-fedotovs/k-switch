@@ -8,7 +8,11 @@ import { readConfiguration, synchronize, writeConfiguration } from '../src/share
 import { focusName } from '../src/prefs/focus.js';
 import { verifyScrolling } from './prefs-scroll.js';
 import { groupShortcutError, validAccelerator } from '../src/prefs/accelerators.js';
-import { verifyCachedSchema, verifySessionGuard } from './session-guard-smoke.js';
+import {
+  verifyCachedSchema,
+  verifyMetadataFailures,
+  verifySessionGuard,
+} from './session-guard-smoke.js';
 import { verifyPreferencesRequests } from './preferences-request-smoke.js';
 import { verifyGroupNames } from './prefs-names.js';
 
@@ -327,7 +331,8 @@ application.connect('activate', () => {
       ['xkb', 'lv+tilde'],
     ]),
   );
-  void verifyCachedSchema(settings)
+  void verifyMetadataFailures(settings)
+    .then(() => verifyCachedSchema(settings))
     .then(() => verifySessionGuard(settings))
     .then(verifyPreferencesRequests)
     .then(() => runWindow(settings, desktop))
@@ -343,12 +348,13 @@ application.connect('activate', () => {
 async function runWindow(settings: Gio.Settings, desktop: Gio.Settings): Promise<void> {
   synchronize(settings, desktop);
   const window = new Adw.PreferencesWindow({ application, title: 'K-switch' });
-  buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
+  const dispose = buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
   window.present();
   try {
     await settle();
     await verify(window, settings, desktop);
   } finally {
+    dispose();
     window.close();
   }
 }

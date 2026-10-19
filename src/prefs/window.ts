@@ -88,7 +88,6 @@ class PreferencesEditor {
   #structure = '';
   #syncing = false;
   #pending: number | null = null;
-  readonly #closeSignal: number;
   readonly #transfers = new Gio.Cancellable();
 
   constructor(window: Adw.PreferencesWindow, settings: Gio.Settings, verify: () => Promise<void>) {
@@ -113,10 +112,6 @@ class PreferencesEditor {
         }),
       },
     ];
-    this.#closeSignal = window.connect('close-request', () => {
-      this.destroy();
-      return false;
-    });
   }
 
   #queue(): void {
@@ -208,14 +203,13 @@ class PreferencesEditor {
   }
 
   destroy(): void {
-    this.#transfers.cancel();
-    this.#window.disconnect(this.#closeSignal);
-    for (const signal of this.#signals.splice(0)) {
-      signal.settings.disconnect(signal.id);
-    }
     if (this.#pending !== null) {
       GLib.source_remove(this.#pending);
       this.#pending = null;
+    }
+    this.#transfers.cancel();
+    for (const signal of this.#signals.splice(0)) {
+      signal.settings.disconnect(signal.id);
     }
     this.#bindings = [];
     this.#window.remove(this.#groupsPage);

@@ -3,7 +3,7 @@
 Read README.md and CONTRIBUTING.md before modifying this project.
 
 - Use `k-switch@bug.guru`, schema `org.gnome.shell.extensions.guru.bug.k-switch`, and D-Bus namespace
-  `guru.bug.KSwitch`. Do not add automatic migration or coordination for the
+  `guru.bug.KSwitch`. Do not add automatic migration for the
   former Layout Pair identity; users can transfer configuration through files.
 - The 0.4.0 K-switch schema/path is also transferred through export/import.
   Do not add automatic migration; document export before replacing that version.
@@ -27,6 +27,10 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   languages. Preserve explicit legacy overrides when migrating.
   Legacy source keys must have empty defaults. Native setup checks must also
   start without US/Russian sources and derive expectations from configured IDs.
+- Keep enable() synchronous with owned cancellable asynchronous initialization.
+  Verify metadata before obtaining GSettings or acquiring switching resources.
+  Keep the runtime-version RPC owned by the entry point until disable, including
+  pending/failed startup. Fail once with a notification; require re-enable.
 - Check Shell, preferences-code and on-disk versions before preferences can
   synchronize or write settings. Mismatches must preserve configuration and block
   editing until a matching session is available.

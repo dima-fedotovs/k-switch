@@ -84,7 +84,6 @@ While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group
 options unless independently changed. Caps remaps, including the combined
 Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
-The competing Switch Two Layouts extension is detected; do not run both switchers together.
 
 ## Configuration and migration
 
@@ -173,6 +172,10 @@ Results are in `artifacts/`.
 
 GNOME Shell and preferences run in separate processes. Lint rules enforce their
 boundaries. Only the runtime adapter uses Shell's internal source-manager API.
+The entry point owns the runtime-version D-Bus service from enable to disable,
+including pending or failed initialization; it reports executing code, not readiness.
+A startup failure releases the working session and notifies once. Correct the
+cause and re-enable to retry.
 Owned handlers, the runtime-version D-Bus service, direct keybindings, panel
 widgets and XKB options are released on disable.
 The GNOME 50.1 adapter applies the current XKB ID explicitly after option changes:
@@ -202,38 +205,33 @@ The UUID is `k-switch@bug.guru`. Starting with 0.4.1, the GSettings schema is
 review requirements. The D-Bus action interface remains `guru.bug.KSwitch` at
 `/guru/bug/KSwitch`.
 
-This is a separate extension identity with independent settings. It does not read
-or modify the old Layout Pair namespace, migrate its settings automatically, or
-coordinate with the old extension. To keep groups, export them from Layout Pair
-before removing it, then import the file into K-switch. Existing file formats
-remain supported. Remove the old extension before enabling the new one.
-
 For future K-switch updates, close preferences and disable K-switch before
 replacing the ZIP. On Wayland, log out and back in to load changed Shell code.
 On first installation, log out and back in if GNOME has not discovered the
-extension. Disable Switch Two Layouts before enabling K-switch:
+extension:
 
 ```sh
 gnome-extensions enable k-switch@bug.guru
 gnome-extensions prefs k-switch@bug.guru
 ```
 
-To return to the original setup, disable K-switch and re-enable the previous
-extension. Repository checks never install or enable it in the working desktop.
+Repository checks never install or enable it in the working desktop.
 
 Preferences query a version method provided by the active runtime code, rather
 than trusting Shell's cached metadata. For an inactive extension they use Shell's
 metadata; enabling cached code also checks the installed version asynchronously
-before opening settings or acquiring resources. Disabling cancels a pending
-version read before startup can acquire resources. These versions must match the preferences code
+before opening settings or acquiring resources. The lifecycle entry point returns synchronously; initialization runs asynchronously.
+Disabling cancels its owned request before startup can acquire switching resources.
+Late results from a previous activation cannot affect a newer one. These versions must match the preferences code
 and installed `metadata.json` **before loading or migrating configuration**.
 If they differ, editing and import/export are unavailable: a
 status screen lists all three versions and asks you to log out and sign in again.
 Saved groups are preserved. Updates while the window is open also trigger this
 check. A failed version query keeps editing blocked and provides **Check again**.
 An inactive extension with matching versions can still be configured.
-Both entry points select their shipped schema explicitly, so stale Shell schema
-metadata cannot prevent the version-guard screen from opening after an update.
+Both entry points use the schema declared in metadata. UUID, version and schema
+are verified against installed metadata before obtaining GSettings. Stale schema
+metadata blocks startup/editing until a new session; no schema is substituted.
 Pending file dialogs are cancelled when editing is blocked or the window closes.
 Import/export recheck the versions immediately before writing, so a late dialog
 completion cannot bypass the guard or replace a file after cancellation.

@@ -7,28 +7,29 @@ import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { requestPreferences } from './shared/preferences-request.js';
 import { Session } from './runtime/session.js';
-import { installedVersion } from './shared/shell-version.js';
-import { SCHEMA_ID, VERSION } from './shared/release.js';
+import { RuntimeVersionService } from './runtime/version-service.js';
+import { installedMetadata, verifyMetadata } from './shared/metadata.js';
 
 export default class KSwitch extends Extension {
   #session: Session | null = null;
-  #preferencesRequest: Gio.Cancellable | null = null;
+  #request: Gio.Cancellable | null = null;
+  #versionService: RuntimeVersionService | null = null;
 
-  override async enable(): Promise<void> {
-    this.#preferencesRequest?.cancel();
+  override enable(): void {
     const request = new Gio.Cancellable();
-    this.#preferencesRequest = request;
+    this.#request = request;
+    this.#versionService = new RuntimeVersionService();
+    void this.#initialize(request);
+  }
+
+  async #initialize(request: Gio.Cancellable): Promise<void> {
     try {
-      const installed = await installedVersion(this.dir.get_child('metadata.json'), request);
-      if (request.is_cancelled()) {
+      const installed = await installedMetadata(this.dir.get_child('metadata.json'), request);
+      if (!this.#current(request)) {
         return;
       }
-      if (installed !== VERSION) {
-        throw new Error(
-          'K-switch code changed on disk. Log out and sign in again before enabling.',
-        );
-      }
-      const session = new Session(this.getSettings(SCHEMA_ID), () => {
+      verifyMetadata(installed, this.metadata);
+      const session = new Session(this.getSettings(), () => {
         requestPreferences(this.uuid, request, (error) => {
           Main.notifyError('K-switch: Cannot open settings', String(error));
         });
@@ -36,18 +37,37 @@ export default class KSwitch extends Extension {
       this.#session = session;
       session.start();
     } catch (error) {
-      if (request.is_cancelled()) {
+      if (!this.#current(request)) {
         return;
       }
-      this.disable();
-      throw error;
+      this.#stopSession();
+      Main.notifyError(
+        'K-switch: Cannot start',
+        `${String(error)} Correct the problem, then disable and re-enable K-switch.`,
+      );
     }
   }
 
-  override disable(): void {
-    this.#preferencesRequest?.cancel();
-    this.#preferencesRequest = null;
-    this.#session?.destroy();
+  #current(request: Gio.Cancellable): boolean {
+    return this.#request === request && !request.is_cancelled();
+  }
+
+  #stopSession(): void {
+    const session = this.#session;
     this.#session = null;
+    session?.destroy();
+  }
+
+  override disable(): void {
+    const request = this.#request;
+    this.#request = null;
+    request?.cancel();
+    const versionService = this.#versionService;
+    this.#versionService = null;
+    try {
+      this.#stopSession();
+    } finally {
+      versionService?.destroy();
+    }
   }
 }

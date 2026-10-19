@@ -4,18 +4,14 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { getShortcut } from '../core/config.js';
 import { OptionsLease, type OptionsPort } from '../core/options.js';
 import type { SignalOverride } from '../core/signal-override.js';
-import { RuntimeVersionService } from './version-service.js';
 import { GroupBindings } from './keybindings.js';
 import { GroupController } from './groups.js';
 import { GroupIndicator } from './indicator.js';
 import { interceptSwitching, reapplyCurrentLayout } from './keyboard.js';
 
-const COMPETING_EXTENSION = 'switchtwolayouts@qtmax.dev';
-
 export class Session {
   readonly #settings: Gio.Settings;
   readonly #desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
-  readonly #shell = new Gio.Settings({ schema_id: 'org.gnome.shell' });
   readonly #preferences: () => void;
   readonly #signals: { settings: Gio.Settings; id: number }[] = [];
   #controller: GroupController | null = null;
@@ -25,7 +21,6 @@ export class Session {
   #shortcut = '';
   #refreshing = false;
   #bindings: GroupBindings | null = null;
-  #versionService: RuntimeVersionService | null = null;
 
   constructor(settings: Gio.Settings, preferences: () => void) {
     this.#settings = settings;
@@ -33,16 +28,12 @@ export class Session {
   }
 
   start(): void {
-    if (this.#shell.get_strv('enabled-extensions').includes(COMPETING_EXTENSION)) {
-      throw new Error('Disable Switch Two Layouts before enabling K-switch.');
-    }
     this.#controller = new GroupController(this.#settings, this.#desktop, () => {
       this.#render();
     });
     this.#indicator = new GroupIndicator(this.#preferences);
     this.#override = interceptSwitching(() => this.#controller?.within());
     this.#applyOptions();
-    this.#versionService = new RuntimeVersionService();
     this.#bindings = new GroupBindings(this.#settings, this.#controller);
     this.#bindings.start();
     this.#listen(this.#settings, 'changed::configuration', () => {
@@ -51,15 +42,6 @@ export class Session {
     this.#listen(this.#desktop, 'changed::sources', () => {
       this.#refresh();
     });
-    this.#listen(this.#shell, 'changed::enabled-extensions', () => {
-      if (this.#shell.get_strv('enabled-extensions').includes(COMPETING_EXTENSION)) {
-        this.destroy();
-        Main.notifyError(
-          'K-switch',
-          'Switch Two Layouts was enabled. Disable it, then re-enable K-switch.',
-        );
-      }
-    });
     this.#render();
   }
 
@@ -67,19 +49,22 @@ export class Session {
     for (const signal of this.#signals.splice(0)) {
       signal.settings.disconnect(signal.id);
     }
-    this.#bindings?.destroy();
+    const bindings = this.#bindings;
     this.#bindings = null;
-    this.#versionService?.destroy();
-    this.#versionService = null;
-    this.#controller?.destroy();
+    bindings?.destroy();
+    const controller = this.#controller;
     this.#controller = null;
-    this.#indicator?.destroy();
+    controller?.destroy();
+    const indicator = this.#indicator;
     this.#indicator = null;
-    this.#override?.release();
+    indicator?.destroy();
+    const override = this.#override;
     this.#override = null;
-    if (this.#lease !== null) {
-      this.#lease.release();
-      this.#lease = null;
+    override?.release();
+    const lease = this.#lease;
+    this.#lease = null;
+    if (lease !== null) {
+      lease.release();
       reapplyCurrentLayout();
     }
   }

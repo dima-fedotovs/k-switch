@@ -8,8 +8,8 @@ export default class TestKSwitch extends KSwitch {
   #timer: number | null = null;
   #hasStarted = false;
 
-  override async enable(): Promise<void> {
-    await super.enable();
+  override enable(): void {
+    super.enable();
     if (this.#hasStarted) {
       return;
     }

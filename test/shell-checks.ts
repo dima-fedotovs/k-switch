@@ -11,15 +11,10 @@ import type { GroupConfiguration } from '../src/core/groups.js';
 import { readConfiguration, writeConfiguration } from '../src/shared/settings.js';
 import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 import { shellVersion } from '../src/shared/shell-version.js';
+import { runLifecycleChecks, failedStartup, type RuntimeExtension } from './runtime-lifecycle.js';
 import { UUID, VERSION } from '../src/shared/release.js';
 
-interface TestExtension {
-  readonly dir: Gio.File;
-  readonly metadata: Record<string, unknown>;
-  enable(): Promise<void>;
-  disable(): void;
-  getSettings(): Gio.Settings;
-}
+type TestExtension = RuntimeExtension;
 
 function check(value: boolean, message: string): void {
   if (!value) {
@@ -106,7 +101,8 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   expectSource('lv+tilde');
   checked.push('Disable restores native handler and previous keyboard options');
   for (let index = 0; index < 3; index += 1) {
-    await extension.enable();
+    extension.enable();
+    await settle();
     await settle();
     await selectGroup('Primary');
     await activate('us');
@@ -116,47 +112,10 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
     await settle();
   }
   checked.push('Three enable/disable cycles without duplicate handlers');
-  await cancelledStartupCheck(extension, checked);
-  await cachedSchemaCheck(extension, checked);
-  await competingExtension(extension, checked);
+  checked.push(...(await runLifecycleChecks(extension)));
   await bindingFailureCheck(extension, checked);
   await capsConflictCheck(extension, checked);
-  await cachedRuntimeCheck(extension, checked);
   return checked;
-}
-
-async function cancelledStartupCheck(extension: TestExtension, checked: string[]): Promise<void> {
-  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
-  const settings = extension.getSettings();
-  const options = desktop.get_strv('xkb-options').join(',');
-  const configuration = settings.get_string('configuration');
-  const pending = extension.enable();
-  extension.disable();
-  await pending;
-  await settle();
-  check(Main.panel.statusArea['k-switch'] === undefined, 'Cancelled startup creates no indicator');
-  check(desktop.get_strv('xkb-options').join(',') === options, 'Cancelled startup preserves XKB');
-  check(
-    settings.get_string('configuration') === configuration,
-    'Cancelled startup preserves settings',
-  );
-  checked.push('Disable cancels pending metadata IO before acquiring resources');
-}
-
-async function cachedSchemaCheck(extension: TestExtension, checked: string[]): Promise<void> {
-  const schema = extension.metadata['settings-schema'];
-  extension.metadata['settings-schema'] = 'guru.bug.k-switch';
-  try {
-    await extension.enable();
-    check(
-      (await shellVersion(UUID, new Gio.Cancellable())) === VERSION,
-      'Cached schema metadata must not prevent the current runtime from starting',
-    );
-  } finally {
-    extension.disable();
-    extension.metadata['settings-schema'] = schema;
-  }
-  checked.push('Current runtime uses its shipped schema despite stale Shell metadata');
 }
 
 async function capsConflictCheck(extension: TestExtension, checked: string[]): Promise<void> {
@@ -168,13 +127,7 @@ async function capsConflictCheck(extension: TestExtension, checked: string[]): P
   try {
     writeConfiguration(settings, { ...configuration, shortcut: 'caps' });
     desktop.set_strv('xkb-options', [conflict]);
-    let rejected = false;
-    try {
-      await extension.enable();
-    } catch (error) {
-      rejected = String(error).includes(conflict);
-    }
-    check(rejected, 'The Caps-to-Ctrl group toggle must reject startup');
+    await failedStartup(extension, conflict);
     check(
       desktop.get_strv('xkb-options').join(',') === conflict,
       'Rejected startup preserves the conflicting user option',
@@ -188,40 +141,6 @@ async function capsConflictCheck(extension: TestExtension, checked: string[]): P
   checked.push('Caps-to-Ctrl group-toggle conflict rejects startup and releases resources');
 }
 
-async function cachedRuntimeCheck(extension: TestExtension, checked: string[]): Promise<void> {
-  const settings = extension.getSettings();
-  const saved = settings.get_string('configuration');
-  const file = extension.dir.get_child('metadata.json');
-  const [, bytes] = file.load_contents(null);
-  try {
-    file.replace_contents(
-      new TextEncoder().encode(JSON.stringify({ 'version-name': '99.0.0' })),
-      null,
-      false,
-      Gio.FileCreateFlags.REPLACE_DESTINATION,
-      null,
-    );
-    let rejected = false;
-    try {
-      await extension.enable();
-    } catch (error) {
-      rejected = String(error).includes('Log out and sign in again');
-    }
-    check(rejected, 'Cached runtime refuses changed on-disk code before starting');
-    check(
-      settings.get_string('configuration') === saved,
-      'Rejected startup preserves configuration',
-    );
-    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup creates no indicator');
-  } finally {
-    file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
-    extension.disable();
-  }
-  checked.push(
-    'Cached runtime refuses mismatched installed versions without touching configuration',
-  );
-}
-
 async function bindingFailureCheck(extension: TestExtension, checked: string[]): Promise<void> {
   const add = Main.wm.addKeybinding.bind(Main.wm);
   const remove = Main.wm.removeKeybinding.bind(Main.wm);
@@ -233,13 +152,7 @@ async function bindingFailureCheck(extension: TestExtension, checked: string[]):
     remove(name);
   };
   try {
-    let rejected = false;
-    try {
-      await extension.enable();
-    } catch (error) {
-      rejected = String(error).includes('Cannot register group shortcut');
-    }
-    check(rejected, 'A failed group binding must reject startup');
+    await failedStartup(extension, 'Cannot register group shortcut');
     check(removed.includes('k-switch-next-group'), 'Failure rolls back the first binding');
     check(Main.panel.statusArea['k-switch'] === undefined, 'Failure releases the session');
   } finally {
@@ -247,7 +160,8 @@ async function bindingFailureCheck(extension: TestExtension, checked: string[]):
     Main.wm.addKeybinding = add;
     Main.wm.removeKeybinding = remove;
   }
-  await extension.enable();
+  extension.enable();
+  await settle();
   await settle();
   extension.disable();
   checked.push('Failed direct registration rolls back acquired bindings; re-enable succeeds');
@@ -617,24 +531,6 @@ async function pressKeys(
     keyboard.notify_key(GLib.get_monotonic_time(), key, Clutter.KeyState.RELEASED);
   }
   await settle();
-}
-
-async function competingExtension(extension: TestExtension, checked: string[]): Promise<void> {
-  const shell = new Gio.Settings({ schema_id: 'org.gnome.shell' });
-  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
-  const enabled = shell.get_strv('enabled-extensions');
-  await extension.enable();
-  await settle();
-  shell.set_strv('enabled-extensions', [...enabled, 'switchtwolayouts@qtmax.dev']);
-  await settle();
-  check(
-    desktop.get_strv('xkb-options').join(',') === 'compose:ralt,grp:alt_shift_toggle',
-    'A competing extension must release our handler and options',
-  );
-  shell.set_strv('enabled-extensions', enabled);
-  extension.disable();
-  await settle();
-  checked.push('Enabling a known competing switcher safely releases our resources');
 }
 
 async function triggerSwitch(): Promise<void> {
