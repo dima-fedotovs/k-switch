@@ -93,6 +93,7 @@ async function verifySuccessfulTransfers(fixture: Fixture): Promise<void> {
     readConfiguration(settings).groups[0]?.name === 'Verified import',
     'A verified file dialog imports its configuration',
   );
+  check(!readConfiguration(settings).showGroup, 'Import preserves icon-only display settings');
   click(window, 'Export…');
   dialogs.complete();
   await settle();
@@ -229,6 +230,8 @@ export async function verifyDeferredTransfers(
   const configuration = readConfiguration(settings);
   writeConfigurationFile(file, {
     ...configuration,
+    showGroup: false,
+    showSource: false,
     groups: configuration.groups.map((group) => ({ ...group, name: 'Verified import' })),
   });
   const dialogs = new DelayedDialogs(file);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { execFileSync } from 'node:child_process';
+import { repositoryEnvironment } from './git-environment.js';
 
 export function verifyReleaseRef(tag: string, runObject: string, directory = process.cwd()): void {
   if (!/^[a-f0-9]{40}$/u.test(runObject)) {
@@ -8,6 +9,7 @@ export function verifyReleaseRef(tag: string, runObject: string, directory = pro
   const git = (args: readonly string[]): string =>
     execFileSync('git', [...args], {
       cwd: directory,
+      env: repositoryEnvironment(),
       encoding: 'utf8',
       timeout: 30_000,
     }).trim();

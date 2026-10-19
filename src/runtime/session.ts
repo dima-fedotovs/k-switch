@@ -15,6 +15,7 @@ export class Session {
   readonly #settings: Gio.Settings;
   readonly #desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   readonly #preferences: () => void;
+  readonly #icon: Gio.Icon;
   readonly #signals: { settings: Gio.Settings; id: number }[] = [];
   #controller: GroupController | null = null;
   #indicator: GroupIndicator | null = null;
@@ -24,16 +25,17 @@ export class Session {
   #refreshing = false;
   #bindings: GroupBindings | null = null;
 
-  constructor(settings: Gio.Settings, preferences: () => void) {
+  constructor(settings: Gio.Settings, preferences: () => void, icon: Gio.Icon) {
     this.#settings = settings;
     this.#preferences = preferences;
+    this.#icon = icon;
   }
 
   start(): void {
     this.#controller = new GroupController(this.#settings, this.#desktop, () => {
       this.#render();
     });
-    this.#indicator = new GroupIndicator(this.#preferences);
+    this.#indicator = new GroupIndicator(this.#preferences, this.#icon);
     this.#override = interceptSwitching(() => this.#controller?.within());
     this.#applyOptions();
     this.#bindings = new GroupBindings(this.#settings, this.#controller);

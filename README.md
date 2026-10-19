@@ -7,9 +7,12 @@ Cycle input sources within the active group using a configurable shortcut.
 The default is Caps Lock, with Shift+Caps Lock toggling normal Caps Lock.
 You can also assign shortcuts to move between groups.
 
-The optional panel indicator shows the group's short name. A separate
-**Show selected language** option adds the actual input source; it is off by
-default. GNOME's existing language indicator remains separately managed.
+The optional panel indicator shows the group's short name by default.
+**Show group name** and **Show selected language** control the two labels
+independently; the language is off by default. When both labels are hidden, an
+original symbolic K-switch icon keeps the menu accessible. It follows the panel's
+light/dark theme. **Show group indicator** hides the entire indicator, including
+the icon. GNOME's existing language indicator remains separately managed.
 
 ## Groups and switching
 
@@ -46,7 +49,7 @@ stable group/source IDs when controls are rebuilt, including after a rename.
 The **Groups** preferences page provides short/long names, checkbox membership,
 drag handles, and keyboard-accessible up/down buttons for group and source order.
 The **Switching** page controls both group shortcuts, the within-group preset,
-indicator visibility, source-label visibility, and import/export. Changes save
+indicator visibility, both labels, and import/export. Changes save
 automatically; names and typed shortcuts use an explicit apply button.
 
 Checkbox and skip-switch changes update existing controls without rebuilding the
@@ -116,7 +119,10 @@ source-label display defaults off. A saved active system-group ID selects the
 first usable user group. The last active group remains per-computer state and is
 not exported.
 
-Import accepts versions 1, 2 and 3 and validates before writing. Unknown fields,
+Version 3 configurations keep their previous display options and enable the group
+label when upgraded. Existing groups and shortcuts are preserved.
+
+Import accepts versions 1, 2, 3 and 4 and validates before writing. Unknown fields,
 duplicate identifiers and unsupported versions are rejected. Sources absent on
 the target computer are removed with a message; import never changes GNOME input
 sources. Configuration files are UTF-8 JSON with a 16 KiB size limit. Oversized
@@ -125,11 +131,11 @@ Duplicate names in imports are rejected before writing. Previously saved duplica
 names receive ` (2)`, ` (3)` suffixes without deleting groups or changing their IDs,
 membership or order. Existing suffixed names are reserved during that repair.
 
-Version 3 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
+Version 4 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
 and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut`
-(next), `previousGroupShortcut`, `showIndicator`, `showSource`, and `version`.
+(next), `previousGroupShortcut`, `showIndicator`, `showGroup`, `showSource`, and `version`.
 Source IDs include their type, for example `xkb:us` or `ibus:anthy`. Legacy
-GSettings keys are retained for migration; subsequent edits use version 3.
+GSettings keys are retained for migration; subsequent edits use version 4.
 
 ## Development and architecture
 
@@ -172,6 +178,9 @@ behavioral tests and unmounts its private document portal before D-Bus shutdown.
 The launcher supplies all temporary XDG paths before starting D-Bus. The session
 script refuses mismatched paths before running any desktop settings command.
 Native fixtures load the same formatted production runtime checked inside the ZIP.
+Git release fixtures and reference verification clear Git's repository-local
+environment variables so running checks from a hook cannot redirect child Git
+commands to the project's repository or index.
 Keyboard checks begin in the normal session; overview shortcuts are exercised
 separately, so an unassigned test combination cannot start an application search.
 Results are in `artifacts/`.
@@ -284,7 +293,8 @@ before writing, and successful import/export. Fresh GSettings checks cover zero,
 one, two and three configured sources, IBus-first ordering and legacy overrides.
 A second private Shell starts without US or Russian sources and verifies fresh
 membership and real Caps cycling directly against its configured source order.
-Indicator tests toggle both options repeatedly with the menu open and ensure
+Indicator tests cover all four label modes, the packaged SVG fallback, and hiding
+the whole indicator in icon-only mode. They toggle options with the menu open and ensure
 activating a group retains its menu item until event handling completes.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
 outstanding requests. English, Russian and Latvian fixtures check translated GTK controls and the
@@ -292,6 +302,9 @@ Shell menu, literal names, focus and fresh FR/DE/ES setup. Gettext negative
 controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
 missing tools. Manual wording and visual acceptance of both translations is
 tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
+Final visual acceptance of the new icon and display controls is part of that
+manual checklist. Version 0.4.2 is intended for testing; whole-project manual
+acceptance remains open.
 Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
@@ -383,3 +396,6 @@ To run the publication scans locally, install `security/requirements.txt` with
 Python 3.12 and `pip install --require-hashes`, plus Gitleaks 8.30.1. Build first,
 then run `npm run security`. This contacts the public SCANOSS API using WFP
 fingerprints. Generated reports remain under ignored `artifacts/security/`.
+Fingerprinting permits hidden parent paths inside the allowlisted staging tree,
+so managed worktrees below `.codex` are scanned too. The staging tree contains
+only tracked source, test and script files, excluding dependencies and build output.

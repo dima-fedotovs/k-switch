@@ -2,6 +2,7 @@
 import { MessageError } from '../core/messages.js';
 import { _ } from '../shared/i18n.js';
 import Clutter from 'gi://Clutter';
+import type Gio from 'gi://Gio';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -12,12 +13,15 @@ import type { GroupController } from './groups.js';
 export class GroupIndicator {
   readonly button = new PanelMenu.Button(0.0, 'K-switch');
   readonly #label = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+  readonly #icon: St.Icon;
   readonly #preferences: () => void;
   readonly #rows = new Map<string, PopupMenu.PopupMenuItem>();
   #structure = '';
 
-  constructor(preferences: () => void) {
+  constructor(preferences: () => void, icon: Gio.Icon) {
     this.#preferences = preferences;
+    this.#icon = new St.Icon({ gicon: icon, style_class: 'system-status-icon' });
+    this.button.add_child(this.#icon);
     this.button.add_child(this.#label);
     Main.panel.addToStatusArea('k-switch', this.button);
   }
@@ -27,9 +31,12 @@ export class GroupIndicator {
     this.#label.text = indicatorText(
       group,
       controller.sourceLabel,
+      controller.configuration.showGroup,
       controller.configuration.showSource,
     );
-    this.button.accessible_name = this.#label.text;
+    this.#label.visible = this.#label.text !== '';
+    this.#icon.visible = !this.#label.visible;
+    this.button.accessible_name = this.#label.text || 'K-switch';
     const menu = this.button.menu;
     if (!(menu instanceof PopupMenu.PopupMenu)) {
       throw new MessageError('Missing indicator menu.');

@@ -48,7 +48,7 @@ function shortcutRow(
 
 function visibilityRow(
   context: EditorContext,
-  field: 'showIndicator' | 'showSource',
+  field: 'showIndicator' | 'showGroup' | 'showSource',
   title: string,
   subtitle: string,
 ): Adw.SwitchRow {
@@ -104,9 +104,17 @@ export function switchingEditor(context: EditorContext): Adw.PreferencesGroup {
   section.add(
     visibilityRow(
       context,
+      'showGroup',
+      _('Show group name'),
+      _('Hide both labels to show the K-switch icon.'),
+    ),
+  );
+  section.add(
+    visibilityRow(
+      context,
       'showSource',
       _('Show selected language'),
-      _('Off by default. Add the current input source after the short group name.'),
+      _('Off by default. Show the current input source in the panel.'),
     ),
   );
   context.bind(() => {

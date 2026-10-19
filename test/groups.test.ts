@@ -79,6 +79,7 @@ void test('v1/v2 migrate without the system group, preserving names, order and n
   );
   assert.equal(migrate({ ...v1, secondSource: 'xkb:us' }).groups[0]?.entries.length, 1);
   assert.equal(base.showSource, false);
+  assert.equal(base.showGroup, true);
   const result = reconcile(config, ['xkb:ru', 'ibus:new']);
   assert.deepEqual(result.groups[0]?.entries, [
     { source: 'xkb:ru', enabled: true },
@@ -195,9 +196,12 @@ void test('external selection retains overlapping membership and searches all gr
 void test('menu names prefer optional long names; panel defaults to the short group label', () => {
   assert.equal(groupMenuName(second), 'Japanese');
   assert.equal(groupMenuName({ ...second, longName: '' }), 'jp');
-  assert.equal(indicatorText(second, 'us', false), 'jp');
-  assert.equal(indicatorText(second, 'us', true), 'jp · us');
-  assert.equal(indicatorText(undefined, 'us', false), '—');
+  assert.equal(indicatorText(second, 'us', true, false), 'jp');
+  assert.equal(indicatorText(second, 'us', true, true), 'jp · us');
+  assert.equal(indicatorText(second, 'us', false, true), 'us');
+  assert.equal(indicatorText(second, 'us', false, false), '');
+  assert.equal(indicatorText(undefined, 'us', true, false), '—');
+  assert.equal(indicatorText(undefined, 'us', false, true), 'us');
   assert.deepEqual(chooseGroup(second, 'xkb:us', sources), {
     group: 'japanese',
     source: 'ibus:anthy',
@@ -206,13 +210,33 @@ void test('menu names prefer optional long names; panel defaults to the short gr
   assert.equal(chooseGroup(second, null, []).source, null);
 });
 
-void test('rejects invalid v3 and legacy configurations before applying anything', () => {
+void test('v3 migration preserves settings and keeps the group label visible', () => {
+  const { showGroup, ...previous } = config;
+  assert.equal(showGroup, true);
+  const v3 = { ...previous, version: 3, showIndicator: false, showSource: true };
+  assert.deepEqual(parseGroupConfiguration(JSON.stringify(v3)), {
+    ...config,
+    showIndicator: false,
+    showSource: true,
+  });
+  for (const visible of [false, true]) {
+    for (const group of [false, true]) {
+      for (const source of [false, true]) {
+        const value = { ...config, showIndicator: visible, showGroup: group, showSource: source };
+        assert.deepEqual(parseGroupConfiguration(JSON.stringify(value)), value);
+      }
+    }
+  }
+});
+
+void test('rejects invalid current and legacy configurations before applying anything', () => {
   const invalid: unknown[] = [
     null,
     [],
     3,
     {},
-    { ...config, version: 4 },
+    { ...config, version: 5 },
+    { ...config, version: 3 },
     { ...config, extra: true },
     { ...config, shortcut: '' },
     { ...config, shortcut: 1 },
@@ -221,6 +245,8 @@ void test('rejects invalid v3 and legacy configurations before applying anything
     { ...config, groupShortcut: null },
     { ...config, previousGroupShortcut: 1 },
     { ...config, showSource: null },
+    { ...config, showGroup: null },
+    { ...config, showGroup: undefined },
     { ...config, showIndicator: null },
     { ...config, groups: null },
     { ...config, groups: [second, second] },

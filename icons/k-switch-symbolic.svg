@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <defs>
+    <path id="half" d="M9.85 12.94a5.7 5.7 0 1 1 2.85-4.94" />
+  </defs>
+  <g fill="none" stroke="#2e3436" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke-width="1.4">
+      <use href="#half" />
+      <use href="#half" transform="rotate(180 12 12)" />
+    </g>
+    <g fill="#2e3436" stroke="none">
+      <path d="m12.003333 11.996667-4.05-.36 1.64 3.55Z" />
+      <path d="m12.003333 11.996667-4.05-.36 1.64 3.55Z" transform="rotate(180 12 12)" />
+    </g>
+    <g stroke-width="1.2">
+      <path d="M6.8 5.1v1M4.5 6.7h4.8M8.4 6.7c-.6 1.8-2.1 3-4 3.7M5.5 7.4c.9 1.3 2.1 2.3 3.7 2.8" />
+      <path d="m14.8 18.9 2.2-5.8 2.2 5.8M15.6 16.9h2.8" />
+    </g>
+  </g>
+</svg>

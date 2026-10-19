@@ -89,12 +89,13 @@ export function initialConfiguration(
   primaryName = N_('Primary'),
 ): GroupConfiguration {
   return {
-    version: 3,
+    version: 4,
     shortcut,
     groupShortcut: '',
     previousGroupShortcut: '',
     showSource: false,
     showIndicator: true,
+    showGroup: true,
     groups: [
       {
         id: 'primary',
@@ -128,30 +129,39 @@ function parseGroups(value: unknown, legacy: boolean): readonly LayoutGroup[] {
   );
 }
 
-function parseVersion(value: unknown): GroupConfiguration {
-  const legacy =
-    typeof value === 'object' && value !== null && 'version' in value && value.version === 2;
-  const item = record(
-    value,
-    legacy
-      ? 'allSkip,groupShortcut,groups,shortcut,showIndicator,version'
-      : 'groupShortcut,groups,previousGroupShortcut,shortcut,showIndicator,showSource,version',
-  );
-  if (!legacy && item.version !== 3) {
+function versionedRecord(value: unknown): {
+  version: 2 | 3 | 4;
+  item: Record<string, unknown>;
+} {
+  const version =
+    typeof value === 'object' && value !== null && 'version' in value ? value.version : null;
+  if (version !== 2 && version !== 3 && version !== 4) {
     throw new MessageError('Unsupported configuration version.');
   }
+  const fields = {
+    2: 'allSkip,groupShortcut,groups,shortcut,showIndicator,version',
+    3: 'groupShortcut,groups,previousGroupShortcut,shortcut,showIndicator,showSource,version',
+    4: 'groupShortcut,groups,previousGroupShortcut,shortcut,showGroup,showIndicator,showSource,version',
+  };
+  return { version, item: record(value, fields[version]) };
+}
+
+function parseVersion(value: unknown): GroupConfiguration {
+  const { version, item } = versionedRecord(value);
+  const legacy = version === 2;
   const shortcut = text(item.shortcut);
   getShortcut(shortcut);
   if (legacy) {
     boolean(item.allSkip);
   }
   return {
-    version: 3,
+    version: 4,
     groups: parseGroups(item.groups, legacy),
     shortcut,
     groupShortcut: shortcutText(item.groupShortcut),
     previousGroupShortcut: legacy ? '' : shortcutText(item.previousGroupShortcut),
     showIndicator: boolean(item.showIndicator),
+    showGroup: version === 4 ? boolean(item.showGroup) : true,
     showSource: legacy ? false : boolean(item.showSource),
   };
 }

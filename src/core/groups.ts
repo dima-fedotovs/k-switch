@@ -13,12 +13,13 @@ export interface LayoutGroup {
 }
 
 export interface GroupConfiguration {
-  readonly version: 3;
+  readonly version: 4;
   readonly groups: readonly LayoutGroup[];
   readonly shortcut: string;
   readonly groupShortcut: string;
   readonly previousGroupShortcut: string;
   readonly showIndicator: boolean;
+  readonly showGroup: boolean;
   readonly showSource: boolean;
 }
 
@@ -129,8 +130,15 @@ export function groupMenuName(group: LayoutGroup): string {
 export function indicatorText(
   group: LayoutGroup | undefined,
   source: string,
+  showGroup: boolean,
   showSource: boolean,
 ): string {
-  const name = group?.name ?? '—';
-  return showSource ? `${name} · ${source}` : name;
+  const labels = [];
+  if (showGroup) {
+    labels.push(group?.name ?? '—');
+  }
+  if (showSource) {
+    labels.push(source);
+  }
+  return labels.join(' · ');
 }
