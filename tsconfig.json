@@ -18,7 +18,8 @@
     "skipLibCheck": true,
     "rootDir": ".",
     "outDir": ".build",
-    "sourceMap": true
+    "sourceMap": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "types/**/*.d.ts", "scripts/**/*.ts"]
 }

@@ -13,7 +13,7 @@
     "build": "npm run compile && node scripts/build.ts",
     "check": "npm run format:check && npm run lint && npm run lint:shell && npm run typecheck && npm test && npm run build && npm run check:shexli && npm run test:gjs",
     "hooks:install": "git config core.hooksPath .githooks",
-    "test:gjs": "GSETTINGS_BACKEND=memory GSETTINGS_SCHEMA_DIR=$PWD/dist/schemas gjs -m .build/test/gjs-smoke.js",
+    "test:gjs": "node scripts/gjs-test.ts",
     "test:shell": "npm run build && node scripts/shell-test.ts",
     "test:prefs": "node scripts/prefs-test.ts",
     "lint:shell": "node scripts/check-shell.ts",

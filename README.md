@@ -151,7 +151,8 @@ npm run check
 
 `check` requires formatting, typed ESLint with zero warnings, shell syntax,
 strict TypeScript, unit tests with **100% statements/functions/branches/lines for
-`src/core`**, strict schema compilation, exact ZIP content verification, and a
+`src/core`**, strict schema compilation, exact ZIP content verification (including Prettier style and a 200-character JavaScript
+line limit), and a
 real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
 hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
 Keep the virtual environment active when running checks or committing.
@@ -171,6 +172,7 @@ local GIO VFS; the Shell fixture checks its local URI capabilities before
 behavioral tests and unmounts its private document portal before D-Bus shutdown.
 The launcher supplies all temporary XDG paths before starting D-Bus. The session
 script refuses mismatched paths before running any desktop settings command.
+Native fixtures load the same formatted production runtime checked inside the ZIP.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |

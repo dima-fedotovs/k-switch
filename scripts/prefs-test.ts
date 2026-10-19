@@ -3,11 +3,13 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { prepareNativeRuntime } from './native-runtime.ts';
 
 const directory = mkdtempSync(`${tmpdir()}/k-switch-prefs-`);
 mkdirSync(`${directory}/runtime`, { mode: 0o700 });
 mkdirSync('artifacts', { recursive: true });
 try {
+  prepareNativeRuntime(directory);
   execFileSync(
     'xvfb-run',
     [
@@ -18,7 +20,7 @@ try {
       '--',
       'gjs',
       '-m',
-      '.build/test/prefs-smoke.js',
+      `${directory}/test/prefs-smoke.js`,
     ],
     {
       stdio: 'inherit',

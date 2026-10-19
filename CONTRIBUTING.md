@@ -37,7 +37,10 @@ GNOME Shell 50's preferences host API; unrelated deprecated APIs stay forbidden.
 - Avoid blocking work inside GNOME Shell. Small configuration-file operations
   belong in the separate preferences process.
 - Preserve a readable, unminified JavaScript release artifact. Ship only runtime
-  modules, metadata, schema XML and the license.
+  modules, metadata, schema XML and license/provenance notices. Format compiled
+  JavaScript with the project Prettier configuration, then check style and the
+  independent 200-character line limit in the final ZIP. Native fixtures use that
+  same formatted runtime.
 
 ## Commits and releases
 

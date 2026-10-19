@@ -20,7 +20,13 @@ export class GroupActions {
       }
     };
     this.#exported = Gio.DBusExportedObject.wrapJSObject(
-      `<node><interface name="${ACTION_INTERFACE}"><method name="NextGroup"/><method name="PreviousGroup"/><method name="GetRuntimeVersion"><arg type="s" direction="out"/></method></interface></node>`,
+      `<node>
+        <interface name="${ACTION_INTERFACE}">
+          <method name="NextGroup"/>
+          <method name="PreviousGroup"/>
+          <method name="GetRuntimeVersion"><arg type="s" direction="out"/></method>
+        </interface>
+      </node>`,
       {
         GetRuntimeVersion: (): string => VERSION,
         NextGroup: (): void => {

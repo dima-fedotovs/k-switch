@@ -12,6 +12,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { prepareNativeRuntime } from './native-runtime.ts';
 
 function runFixture(mode: 'full' | 'fresh'): void {
   const directory = mkdtempSync(`${tmpdir()}/k-switch-shell-${mode}-`);
@@ -26,8 +27,7 @@ function runFixture(mode: 'full' | 'fresh'): void {
     mkdirSync(extension, { recursive: true });
     mkdirSync(`${directory}/runtime`, { mode: 0o700 });
     cpSync('dist', extension, { recursive: true });
-    cpSync('.build/src', `${extension}/src`, { recursive: true });
-    cpSync('.build/test', `${extension}/test`, { recursive: true });
+    prepareNativeRuntime(extension);
     writeFileSync(
       `${extension}/extension.js`,
       "export { default } from './test/fixture-extension.js';\n",
