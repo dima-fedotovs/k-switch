@@ -162,6 +162,11 @@ real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
 hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
 Keep the virtual environment active when running checks or committing.
 
+Run `npm run clean` to remove generated compilation, build, test and scan output
+(`.build/`, `dist/`, `artifacts/`, `coverage/` and `.nyc_output/`). Dependencies in
+`node_modules/` and Python environments are preserved. Missing output directories
+are allowed, so the command can be run repeatedly. Rebuild with `npm run build`.
+
 ```sh
 npm run format
 npm run quality:prove
