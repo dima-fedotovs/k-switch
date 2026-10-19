@@ -13,6 +13,7 @@ import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 import { shellVersion } from '../src/shared/shell-version.js';
 import { runLifecycleChecks, failedStartup, type RuntimeExtension } from './runtime-lifecycle.js';
 import { UUID, VERSION } from '../src/shared/release.js';
+import { verifyIndicatorModes } from './indicator-modes.js';
 
 type TestExtension = RuntimeExtension;
 
@@ -247,6 +248,7 @@ async function groupChecks(settings: Gio.Settings, checked: string[]): Promise<v
     'External selection finds the nearest later group even when excluded',
   );
   await selectGroup('Latvian');
+  await verifyIndicatorModes(indicator(), settings);
   expectSource('us');
   await triggerSwitch();
   expectSource('lv+tilde');
@@ -281,6 +283,9 @@ async function groupChecks(settings: Gio.Settings, checked: string[]): Promise<v
   await indicatorChecks(settings);
   await indicatorMenuChecks(settings);
   await indicatorActivationCheck(settings);
+  checked.push(
+    'Independent group/source labels, packaged SVG fallback, icon-only menu access and global visibility',
+  );
   checked.push(
     'Repeated indicator toggles with an open menu; group activation retains its menu item and closes the menu',
   );

@@ -128,6 +128,16 @@ async function verifySwitching(window: Adw.PreferencesWindow): Promise<void> {
     ),
     'Switching page is translated',
   );
+  check(
+    widgets(window).some(
+      (item) =>
+        item instanceof Adw.SwitchRow &&
+        item.name === 'showGroup' &&
+        item.title === _('Show group name') &&
+        item.subtitle === _('Hide both labels to show the K-switch icon.'),
+    ),
+    'Icon-only controls have translated text and stable identity',
+  );
   const screenshot = GLib.getenv('K_SWITCH_SCREENSHOT');
   if (screenshot !== null) {
     check(

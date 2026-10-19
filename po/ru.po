@@ -271,14 +271,17 @@ msgstr "Показывать индикатор группы"
 msgid "The standard GNOME indicator is managed separately."
 msgstr "Стандартный индикатор GNOME настраивается отдельно."
 
+msgid "Show group name"
+msgstr "Показывать название группы"
+
+msgid "Hide both labels to show the K-switch icon."
+msgstr "Если обе подписи скрыты, показывается значок K-switch."
+
 msgid "Show selected language"
 msgstr "Показывать выбранный язык"
 
-msgid ""
-"Off by default. Add the current input source after the short group name."
-msgstr ""
-"По умолчанию выключено. Добавляет текущий источник ввода после короткого "
-"названия группы."
+msgid "Off by default. Show the current input source in the panel."
+msgstr "По умолчанию выключено. Показывать текущий источник ввода на панели."
 
 msgid "Export K-switch settings"
 msgstr "Экспорт настроек K-switch"

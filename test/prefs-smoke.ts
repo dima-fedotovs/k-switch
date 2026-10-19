@@ -280,6 +280,7 @@ async function verifyIndicatorOptions(window: Gtk.Widget, settings: Gio.Settings
   );
   writeConfiguration(settings, {
     ...readConfiguration(settings),
+    showGroup: true,
     showSource: false,
     previousGroupShortcut: '',
   });
@@ -288,28 +289,43 @@ async function verifyIndicatorOptions(window: Gtk.Widget, settings: Gio.Settings
 
 async function verifyIndicatorSwitches(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
   const source = descendants(window).find(
-    (widget) => widget instanceof Adw.SwitchRow && widget.title === 'Show selected language',
+    (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showSource',
   );
   const indicator = descendants(window).find(
-    (widget) => widget instanceof Adw.SwitchRow && widget.title === 'Show group indicator',
+    (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showIndicator',
   );
-  if (!(source instanceof Adw.SwitchRow) || !(indicator instanceof Adw.SwitchRow)) {
+  const group = descendants(window).find(
+    (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showGroup',
+  );
+  if (
+    !(source instanceof Adw.SwitchRow) ||
+    !(indicator instanceof Adw.SwitchRow) ||
+    !(group instanceof Adw.SwitchRow)
+  ) {
     throw new Error('Missing indicator options');
   }
   check(!source.active, 'Selected language is off by default');
-  for (const [visible, language] of [
-    [false, false],
-    [false, true],
-    [true, true],
-    [true, false],
+  check(group.active, 'Group name is on by default');
+  for (const [visible, name, language] of [
+    [false, false, false],
+    [false, false, true],
+    [false, true, true],
+    [false, true, false],
+    [true, false, false],
+    [true, false, true],
+    [true, true, true],
+    [true, true, false],
   ] as const) {
     indicator.active = visible;
+    group.active = name;
     source.active = language;
     await settle();
     const configuration = readConfiguration(settings);
     check(
-      configuration.showIndicator === visible && configuration.showSource === language,
-      'Rapid edits to both indicator switches must persist together',
+      configuration.showIndicator === visible &&
+        configuration.showGroup === name &&
+        configuration.showSource === language,
+      'Rapid edits to all indicator switches must persist together',
     );
   }
 }

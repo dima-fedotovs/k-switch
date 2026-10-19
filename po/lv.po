@@ -271,14 +271,17 @@ msgstr "Rādīt grupas indikatoru"
 msgid "The standard GNOME indicator is managed separately."
 msgstr "Standarta GNOME indikators tiek pārvaldīts atsevišķi."
 
+msgid "Show group name"
+msgstr "Rādīt grupas nosaukumu"
+
+msgid "Hide both labels to show the K-switch icon."
+msgstr "Ja abi uzraksti ir paslēpti, tiek rādīta K-switch ikona."
+
 msgid "Show selected language"
 msgstr "Rādīt izvēlēto valodu"
 
-msgid ""
-"Off by default. Add the current input source after the short group name."
-msgstr ""
-"Pēc noklusējuma izslēgts. Pievieno pašreizējo ievades avotu aiz grupas īsā "
-"nosaukuma."
+msgid "Off by default. Show the current input source in the panel."
+msgstr "Pēc noklusējuma izslēgts. Rādīt pašreizējo ievades avotu panelī."
 
 msgid "Export K-switch settings"
 msgstr "Eksportēt K-switch iestatījumus"

@@ -30,7 +30,7 @@ cpSync('.build/src', 'dist', {
 });
 await formatRuntime('dist');
 compileTranslations('dist');
-for (const path of ['metadata.json', 'LICENSE', 'NOTICE', 'schemas']) {
+for (const path of ['metadata.json', 'LICENSE', 'NOTICE', 'schemas', 'icons']) {
   cpSync(path, `dist/${path}`, { recursive: true });
 }
 execFileSync('glib-compile-schemas', ['--strict', 'dist/schemas'], { stdio: 'inherit' });
@@ -48,6 +48,7 @@ execFileSync(
     '--extra-source=LICENSE',
     '--extra-source=NOTICE',
     '--extra-source=locale',
+    '--extra-source=icons',
   ],
   { stdio: 'inherit' },
 );

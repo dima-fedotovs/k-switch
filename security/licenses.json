@@ -7,43 +7,43 @@
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "MIT",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "Apache-2.0",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "ISC",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "BSD-2-Clause",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "BSD-3-Clause",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "package-lock.json",
-    "sourceSha256": "fcb4bfe3d369262cd7c6a558bd0562f7222284fa5fcbe401fa7a52bcd6880ede",
+    "sourceSha256": "0a9490315dd2caa51c7ea85fc671227bbd06856774142ddb49b6ca05872ba3d8",
     "expression": "BlueOak-1.0.0",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "scripts/build.ts",
-    "sourceSha256": "96b76c7cbd9ad1fb76b5fbe5fd499622b2281848110d5e86a15c7f5ee46cf7f5",
+    "sourceSha256": "5e59c45deaf78798861f325ae635123af31228d5a13794bbc34059128cacdd09",
     "expression": "JSON",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },

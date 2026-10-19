@@ -12,7 +12,9 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   group: external sources absent from every group leave the active group sticky.
   Caps resumes that group. The skip flag affects only next/previous group cycling.
 - Keep short panel names and optional long menu names distinct. The panel shows
-  the group alone by default; the source label is optional.
+  the group alone by default; both labels can be hidden independently. Use the
+  packaged symbolic icon only when neither label is shown. The global visibility
+  switch hides the entire indicator, including its icon.
 - Short names and nonempty long names must each be unique after trimming,
   case-insensitive comparison and Unicode composition normalization. Reject duplicate edits/imports;
   repair stored duplicates with suffixes while preserving IDs, order and membership.

@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { verifyReleaseRef } from '../scripts/release-ref.js';
+import { repositoryEnvironment } from '../scripts/git-environment.js';
 
 class GitFixture {
   readonly directory = mkdtempSync(join(tmpdir(), 'k-switch-release-ref-'));
@@ -30,7 +31,12 @@ class GitFixture {
   }
 
   git(...args: string[]): string {
-    return execFileSync('git', args, { cwd: this.work, encoding: 'utf8', timeout: 30_000 }).trim();
+    return execFileSync('git', args, {
+      cwd: this.work,
+      env: repositoryEnvironment(),
+      encoding: 'utf8',
+      timeout: 30_000,
+    }).trim();
   }
 
   commit(content: string): string {
@@ -44,6 +50,21 @@ class GitFixture {
     rmSync(this.directory, { recursive: true, force: true });
   }
 }
+
+void test('child repositories cannot inherit Git hook repository and index overrides', () => {
+  const inherited = {
+    PATH: process.env.PATH,
+    GIT_DIR: '/parent/repository',
+    GIT_COMMON_DIR: '/parent/common',
+    GIT_WORK_TREE: '/parent/checkout',
+    GIT_INDEX_FILE: '/parent/index',
+    GIT_OBJECT_DIRECTORY: '/parent/objects',
+    GIT_CONFIG_COUNT: '1',
+  };
+  const isolated = repositoryEnvironment(inherited);
+  assert.deepEqual(isolated, { PATH: process.env.PATH });
+  assert.equal(inherited.GIT_DIR, '/parent/repository');
+});
 
 void test('release refs reject moved/deleted/off-main tags and accept peeled annotated tags', () => {
   const fixture = new GitFixture();

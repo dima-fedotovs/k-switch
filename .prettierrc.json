@@ -5,6 +5,12 @@
   "plugins": ["prettier-plugin-sh"],
   "overrides": [
     {
+      "files": "*.svg",
+      "options": {
+        "parser": "html"
+      }
+    },
+    {
       "files": ".githooks/*",
       "options": {
         "parser": "sh"

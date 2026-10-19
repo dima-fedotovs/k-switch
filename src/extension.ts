@@ -32,11 +32,15 @@ export default class KSwitch extends Extension {
         return;
       }
       verifyMetadata(installed, this.metadata);
-      const session = new Session(this.getSettings(), () => {
-        requestPreferences(this.uuid, request, (error) => {
-          Main.notifyError(_('K-switch: Cannot open settings'), errorText(error));
-        });
-      });
+      const session = new Session(
+        this.getSettings(),
+        () => {
+          requestPreferences(this.uuid, request, (error) => {
+            Main.notifyError(_('K-switch: Cannot open settings'), errorText(error));
+          });
+        },
+        new Gio.FileIcon({ file: this.dir.get_child('icons').get_child('k-switch-symbolic.svg') }),
+      );
       this.#session = session;
       session.start();
     } catch (error) {
