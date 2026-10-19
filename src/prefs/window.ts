@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { _, errorText } from '../shared/i18n.js';
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -22,14 +23,14 @@ function transferGroup(
   settings: Gio.Settings,
   access: TransferAccess,
 ): Adw.PreferencesGroup {
-  const group = new Adw.PreferencesGroup({ title: 'Move settings between computers' });
+  const group = new Adw.PreferencesGroup({ title: _('Move settings between computers') });
   const row = new Adw.ActionRow({
-    title: 'Configuration file',
-    subtitle: 'Only K-switch preferences are exported.',
+    title: _('Configuration file'),
+    subtitle: _('Only K-switch preferences are exported.'),
   });
   for (const [label, callback] of [
-    ['Import…', importConfiguration],
-    ['Export…', exportConfiguration],
+    [_('Import…'), importConfiguration],
+    [_('Export…'), exportConfiguration],
   ] as const) {
     const button = new Gtk.Button({ label, valign: Gtk.Align.CENTER });
     button.connect('clicked', () => {
@@ -44,25 +45,30 @@ function transferGroup(
 function addGroup(context: EditorContext, desktop: Gio.Settings): Adw.PreferencesGroup {
   const section = new Adw.PreferencesGroup();
   const row = new Adw.ActionRow({
-    title: 'New group',
-    subtitle: 'Enable layouts with checkboxes and arrange their order.',
+    title: _('New group'),
+    subtitle: _('Enable layouts with checkboxes and arrange their order.'),
   });
   row.add_suffix(
-    action('list-add-symbolic', 'Add group', () => {
-      context.save({
-        ...context.configuration,
-        groups: [
-          ...context.configuration.groups,
-          {
-            id: GLib.uuid_string_random(),
-            name: nextGroupName(context.configuration.groups),
-            longName: '',
-            skip: false,
-            entries: configuredSources(desktop).map((source) => ({ source, enabled: false })),
-          },
-        ],
-      });
-    }),
+    action(
+      'list-add-symbolic',
+      _('Add group'),
+      () => {
+        context.save({
+          ...context.configuration,
+          groups: [
+            ...context.configuration.groups,
+            {
+              id: GLib.uuid_string_random(),
+              name: nextGroupName(context.configuration.groups, _('Group %s')),
+              longName: '',
+              skip: false,
+              entries: configuredSources(desktop).map((source) => ({ source, enabled: false })),
+            },
+          ],
+        });
+      },
+      'add-group',
+    ),
   );
   section.add(row);
   return section;
@@ -73,11 +79,13 @@ class PreferencesEditor {
   readonly #settings: Gio.Settings;
   readonly #desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   readonly #groupsPage = new Adw.PreferencesPage({
-    title: 'Groups',
+    title: _('Groups'),
+    name: 'groups',
     icon_name: 'view-list-symbolic',
   });
   readonly #switchingPage = new Adw.PreferencesPage({
-    title: 'Switching',
+    title: _('Switching'),
+    name: 'switching',
     icon_name: 'input-keyboard-symbolic',
   });
   readonly #transfer: Adw.PreferencesGroup;
@@ -199,7 +207,7 @@ class PreferencesEditor {
   }
 
   #error(error: unknown): void {
-    this.#window.add_toast(new Adw.Toast({ title: String(error), timeout: 8 }));
+    this.#window.add_toast(new Adw.Toast({ title: errorText(error), timeout: 8 }));
   }
 
   destroy(): void {

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { _ } from '../shared/i18n.js';
 import Gio from 'gi://Gio';
 import { parseGroupConfiguration } from '../core/group-config.js';
 import type { GroupConfiguration } from '../core/groups.js';
@@ -17,7 +19,7 @@ export function readConfigurationFile(file: Gio.File): GroupConfiguration {
       }
       length += chunk.length;
       if (length > MAX_IMPORT_BYTES) {
-        throw new Error('Configuration exceeds 16 KiB.');
+        throw new MessageError('Configuration exceeds 16 KiB.');
       }
       chunks.push(chunk);
     }
@@ -30,7 +32,10 @@ export function readConfigurationFile(file: Gio.File): GroupConfiguration {
     bytes.set(chunk, offset);
     offset += chunk.length;
   }
-  return parseGroupConfiguration(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  return parseGroupConfiguration(
+    new TextDecoder('utf-8', { fatal: true }).decode(bytes),
+    _('Primary'),
+  );
 }
 
 export function writeConfigurationFile(file: Gio.File, configuration: GroupConfiguration): void {
@@ -38,7 +43,7 @@ export function writeConfigurationFile(file: Gio.File, configuration: GroupConfi
   const text = `${JSON.stringify(validated, null, 2)}\n`;
   const bytes = new TextEncoder().encode(text);
   if (bytes.length > MAX_IMPORT_BYTES) {
-    throw new Error('Configuration exceeds 16 KiB; reduce group count before exporting.');
+    throw new MessageError('Configuration exceeds 16 KiB; reduce group count before exporting.');
   }
   file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
 }

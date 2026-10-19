@@ -1,0 +1,378 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# K-switch ru translation.
+msgid ""
+msgstr ""
+"Project-Id-Version: K-switch\n"
+"Report-Msgid-Bugs-To: https://github.com/dima-fedotovs/k-switch/issues\n"
+"PO-Revision-Date: 2026-10-19 00:00+0000\n"
+"Last-Translator: K-switch contributors\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+msgid "Caps Lock"
+msgstr "Caps Lock"
+
+msgid "Shift+Caps Lock toggles normal Caps Lock."
+msgstr "Shift+Caps Lock включает и выключает Caps Lock."
+
+msgid "Shift + Caps Lock"
+msgstr "Shift + Caps Lock"
+
+msgid "Caps Lock keeps its normal function."
+msgstr "Caps Lock сохраняет обычное действие."
+
+msgid "Alt + Caps Lock"
+msgstr "Alt + Caps Lock"
+
+msgid "Menu"
+msgstr "Меню"
+
+msgid "Shift+Menu opens the context menu."
+msgstr "Shift+Menu открывает контекстное меню."
+
+msgid "Scroll Lock"
+msgstr "Scroll Lock"
+
+msgid "Requires a Scroll Lock key."
+msgstr "Нужна клавиша Scroll Lock."
+
+msgid "Both Shift keys"
+msgstr "Обе клавиши Shift"
+
+msgid "Press the left and right Shift keys together."
+msgstr "Нажмите левый и правый Shift одновременно."
+
+msgid "Alt + Shift"
+msgstr "Alt + Shift"
+
+msgid "May interfere with application shortcuts containing Alt+Shift."
+msgstr "Может мешать сочетаниям приложений с Alt+Shift."
+
+msgid "Ctrl + Shift"
+msgstr "Ctrl + Shift"
+
+msgid "May interfere with Ctrl+Shift+C/V and other application shortcuts."
+msgstr "Может мешать Ctrl+Shift+C/V и другим сочетаниям приложений."
+
+#, javascript-format
+msgid "Unknown shortcut: %s"
+msgstr "Неизвестное сочетание: %s"
+
+msgid "Configuration must be a JSON object."
+msgstr "Конфигурация должна быть объектом JSON."
+
+msgid ""
+"Configuration must contain exactly version, firstSource, secondSource, "
+"shortcut."
+msgstr ""
+"Конфигурация должна содержать только поля version, firstSource, secondSource "
+"и shortcut."
+
+msgid "Unsupported configuration version."
+msgstr "Неподдерживаемая версия конфигурации."
+
+msgid "Choose two valid XKB layout identifiers."
+msgstr "Выберите два допустимых идентификатора раскладок XKB."
+
+msgid "Choose two different layouts."
+msgstr "Выберите две разные раскладки."
+
+msgid "Shortcut must be a string."
+msgstr "Сочетание клавиш должно быть строкой."
+
+msgid "GNOME input sources must be an array."
+msgstr "Источники ввода GNOME должны быть массивом."
+
+msgid "Invalid GNOME input source."
+msgstr "Недопустимый источник ввода GNOME."
+
+#, javascript-format
+msgid "Expected an object containing exactly: %s"
+msgstr "Ожидается объект, содержащий только: %s"
+
+msgid "Expected nonempty text without control characters."
+msgstr "Ожидается непустой текст без управляющих символов."
+
+msgid "Expected a boolean."
+msgstr "Ожидается логическое значение."
+
+msgid "Duplicate identifiers are not allowed."
+msgstr "Повторяющиеся идентификаторы недопустимы."
+
+msgid "Expected a list."
+msgstr "Ожидается список."
+
+msgid "Expected a GNOME input source identifier."
+msgstr "Ожидается идентификатор источника ввода GNOME."
+
+msgid "The system group cannot be overridden."
+msgstr "Системную группу нельзя переопределить."
+
+#. Translators: Default group name, created once; unrelated to keyboard languages.
+msgid "Primary"
+msgstr "Основная"
+
+msgid "Expected a shortcut string."
+msgstr "Ожидается строка сочетания клавиш."
+
+msgid "Group short names must be unique."
+msgstr "Короткие названия групп должны быть уникальными."
+
+msgid "Group long names must be unique."
+msgstr "Длинные названия групп должны быть уникальными."
+
+#. Translators: %s is the sequence number of a newly created group.
+#, javascript-format
+msgid "Group %s"
+msgstr "Группа %s"
+
+#, javascript-format
+msgid "Caps Lock is already assigned by %s. Remove that assignment first."
+msgstr ""
+"Caps Lock уже используется параметром %s. Сначала удалите это назначение."
+
+msgid "GNOME 50 keyboard handler was not found."
+msgstr "Обработчик клавиатуры GNOME 50 не найден."
+
+msgid "K-switch: Cannot open settings"
+msgstr "K-switch: не удалось открыть настройки"
+
+msgid "K-switch: Cannot start"
+msgstr "K-switch: не удалось запустить"
+
+#, javascript-format
+msgid "%s Correct the problem, then disable and re-enable K-switch."
+msgstr "%s Устраните причину, затем выключите и снова включите K-switch."
+
+msgid "Invalid group shortcut. Use a key with modifiers or a function key."
+msgstr ""
+"Недопустимое сочетание для группы. Укажите клавишу с модификаторами или "
+"функциональную клавишу."
+
+msgid "Next and previous group shortcuts must be different."
+msgstr "Сочетания для следующей и предыдущей групп должны различаться."
+
+msgid "Configuration exceeds 16 KiB."
+msgstr "Конфигурация превышает 16 КиБ."
+
+msgid "Configuration exceeds 16 KiB; reduce group count before exporting."
+msgstr ""
+"Конфигурация превышает 16 КиБ; уменьшите количество групп перед экспортом."
+
+msgid "Skip when cycling groups"
+msgstr "Пропускать при смене группы"
+
+msgid "The group still participates when a layout is selected externally."
+msgstr "Группа по-прежнему учитывается при выборе раскладки вне K-switch."
+
+msgid "Drag to reorder groups"
+msgstr "Перетащите для изменения порядка групп"
+
+#, javascript-format
+msgid "Delete group %s"
+msgstr "Удалить группу %s"
+
+#, javascript-format
+msgid "Move group %s up"
+msgstr "Переместить группу %s вверх"
+
+#, javascript-format
+msgid "Move group %s down"
+msgstr "Переместить группу %s вниз"
+
+#, javascript-format
+msgid "Include %s"
+msgstr "Включить %s"
+
+msgid "Missing source row."
+msgstr "Строка источника ввода не найдена."
+
+msgid "Drag to reorder layouts"
+msgstr "Перетащите для изменения порядка раскладок"
+
+#, javascript-format
+msgid "Move %s up in %s"
+msgstr "Переместить %s вверх в группе %s"
+
+#, javascript-format
+msgid "Move %s down in %s"
+msgstr "Переместить %s вниз в группе %s"
+
+msgid "Group short name"
+msgstr "Короткое название группы"
+
+msgid "Long name (optional)"
+msgstr "Длинное название (необязательно)"
+
+msgid "Session update"
+msgstr "Обновление сеанса"
+
+msgid "Check again"
+msgstr "Проверить снова"
+
+msgid "Checking GNOME Shell…"
+msgstr "Проверка GNOME Shell…"
+
+msgid "Settings remain unavailable until the version check completes."
+msgstr "Настройки недоступны до завершения проверки версий."
+
+#, javascript-format
+msgid ""
+"GNOME Shell: %s. Preferences: %s. Installed: %s. The versions do not match. "
+"Start a new session before editing settings. Saved groups are preserved."
+msgstr ""
+"GNOME Shell: %s. Настройки: %s. Установлено: %s. Версии не совпадают. "
+"Начните новый сеанс перед изменением настроек. Сохранённые группы не "
+"изменены."
+
+msgid "Log out and sign in again"
+msgstr "Выйдите из сеанса и войдите снова"
+
+msgid "Cannot verify GNOME Shell version"
+msgstr "Не удалось проверить версию GNOME Shell"
+
+#, javascript-format
+msgid "%s Settings have not been changed. Try checking again."
+msgstr "%s Настройки не изменены. Попробуйте проверить снова."
+
+msgid "Switching and indicator"
+msgstr "Переключение и индикатор"
+
+msgid "Switch within the group"
+msgstr "Переключение внутри группы"
+
+msgid "Keyboard behavior"
+msgstr "Действие клавиш"
+
+msgid "Next group shortcut (optional)"
+msgstr "Сочетание для следующей группы (необязательно)"
+
+msgid "Previous group shortcut (optional)"
+msgstr "Сочетание для предыдущей группы (необязательно)"
+
+msgid "Group shortcuts"
+msgstr "Сочетания для групп"
+
+msgid ""
+"Shortcuts work globally while K-switch is enabled, in applications and the "
+"overview. Example: <Super><Alt>space. Leave empty to disable."
+msgstr ""
+"Сочетания работают глобально, пока K-switch включён: в приложениях и обзоре. "
+"Пример: <Super><Alt>space. Оставьте поле пустым для отключения."
+
+msgid "Show group indicator"
+msgstr "Показывать индикатор группы"
+
+msgid "The standard GNOME indicator is managed separately."
+msgstr "Стандартный индикатор GNOME настраивается отдельно."
+
+msgid "Show selected language"
+msgstr "Показывать выбранный язык"
+
+msgid ""
+"Off by default. Add the current input source after the short group name."
+msgstr ""
+"По умолчанию выключено. Добавляет текущий источник ввода после короткого "
+"названия группы."
+
+msgid "Export K-switch settings"
+msgstr "Экспорт настроек K-switch"
+
+msgid "Import K-switch settings"
+msgstr "Импорт настроек K-switch"
+
+msgid "Settings exported"
+msgstr "Настройки экспортированы"
+
+msgid "Settings imported"
+msgstr "Настройки импортированы"
+
+#, javascript-format
+msgid "Imported; unavailable sources removed: %s"
+msgstr "Импорт выполнен; недоступные источники удалены: %s"
+
+msgid "Move settings between computers"
+msgstr "Перенос настроек между компьютерами"
+
+msgid "Configuration file"
+msgstr "Файл конфигурации"
+
+msgid "Only K-switch preferences are exported."
+msgstr "Экспортируются только настройки K-switch."
+
+msgid "Import…"
+msgstr "Импорт…"
+
+msgid "Export…"
+msgstr "Экспорт…"
+
+msgid "New group"
+msgstr "Новая группа"
+
+msgid "Enable layouts with checkboxes and arrange their order."
+msgstr "Отметьте нужные раскладки и задайте их порядок."
+
+msgid "Add group"
+msgstr "Добавить группу"
+
+msgid "Groups"
+msgstr "Группы"
+
+msgid "Switching"
+msgstr "Переключение"
+
+msgid "Missing indicator menu."
+msgstr "Меню индикатора не найдено."
+
+#, javascript-format
+msgid "Missing group menu item: %s"
+msgstr "Пункт меню группы не найден: %s"
+
+msgid "Settings…"
+msgstr "Настройки…"
+
+#, javascript-format
+msgid ""
+"Cannot register group shortcut: %s. Choose another assignment and re-enable "
+"K-switch."
+msgstr ""
+"Не удалось зарегистрировать сочетание для группы: %s. Выберите другое "
+"сочетание и снова включите K-switch."
+
+msgid "GNOME keyboard settings are locked by your administrator."
+msgstr "Настройки клавиатуры GNOME заблокированы администратором."
+
+#, javascript-format
+msgid "Could not complete the operation: %s"
+msgstr "Не удалось выполнить операцию: %s"
+
+#, javascript-format
+msgid "Extension metadata has no valid %s."
+msgstr "В метаданных расширения отсутствует допустимое поле %s."
+
+msgid "Extension metadata must be an object."
+msgstr "Метаданные расширения должны быть объектом."
+
+msgid ""
+"K-switch metadata and running code do not match. Log out and sign in again. "
+"Saved settings are preserved."
+msgstr ""
+"Метаданные K-switch не соответствуют выполняемому коду. Выйдите из сеанса и "
+"войдите снова. Сохранённые настройки не изменены."
+
+msgid "Cannot write locked group preferences."
+msgstr "Не удалось записать заблокированные настройки групп."
+
+msgid "GNOME Shell did not report the extension state."
+msgstr "GNOME Shell не сообщил состояние расширения."
+
+msgid "GNOME Shell is changing extension state. Try checking again."
+msgstr "GNOME Shell меняет состояние расширения. Попробуйте проверить снова."
+
+msgid "Extension metadata does not contain a version name."
+msgstr "Метаданные расширения не содержат названия версии."

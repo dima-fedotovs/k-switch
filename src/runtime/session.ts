@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { errorText } from '../shared/i18n.js';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { getShortcut } from '../core/config.js';
@@ -82,7 +84,7 @@ export class Session {
       this.#controller?.refresh();
       this.#applyOptions();
     } catch (error) {
-      Main.notifyError('K-switch', String(error));
+      Main.notifyError('K-switch', errorText(error));
     } finally {
       this.#refreshing = false;
     }
@@ -106,7 +108,7 @@ export class Session {
       read: (): string[] => this.#desktop.get_strv('xkb-options'),
       write: (value): void => {
         if (!this.#desktop.set_strv('xkb-options', [...value])) {
-          throw new Error('GNOME keyboard settings are locked by your administrator.');
+          throw new MessageError('GNOME keyboard settings are locked by your administrator.');
         }
       },
     };

@@ -22,7 +22,9 @@
     "release:assets": "node .build/scripts/release-tools.js assets",
     "security:ci": "node .build/scripts/security-scan.js --ci",
     "check:shexli": "node .build/scripts/shexli-check.js",
-    "quality:prove:shexli": "node .build/scripts/shexli-negative.js"
+    "quality:prove:shexli": "node .build/scripts/shexli-negative.js",
+    "translations:check": "node scripts/translations.ts",
+    "translations:update": "node scripts/translations.ts update"
   },
   "engines": {
     "node": ">=24.22.0 <25"

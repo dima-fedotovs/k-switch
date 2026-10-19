@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { _ } from './i18n.js';
 import Gio from 'gi://Gio';
 import {
   initialConfiguration,
@@ -15,7 +17,7 @@ export function configuredSources(desktop: Gio.Settings): string[] {
 export function readConfiguration(settings: Gio.Settings): GroupConfiguration {
   const stored = settings.get_string('configuration');
   if (stored !== '') {
-    return parseStoredGroupConfiguration(stored);
+    return parseStoredGroupConfiguration(stored, _('Primary'));
   }
   const legacy = ['first-source', 'second-source'].flatMap((key) => {
     const source = settings.get_user_value(key)?.get_string()[0] ?? '';
@@ -28,6 +30,8 @@ export function readConfiguration(settings: Gio.Settings): GroupConfiguration {
   return initialConfiguration(
     legacy.length > 0 ? legacy : configuredSources(desktop),
     settings.get_string('shortcut'),
+    // Translators: Default group name, created once; unrelated to keyboard languages.
+    _('Primary'),
   );
 }
 
@@ -53,7 +57,7 @@ export function writeConfiguration(
   );
   if (!written || !bound || !previous) {
     transaction.revert();
-    throw new Error('Cannot write locked group preferences.');
+    throw new MessageError('Cannot write locked group preferences.');
   }
   transaction.apply();
 }

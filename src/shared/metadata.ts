@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
 import type Gio from 'gi://Gio';
 import { UUID, VERSION } from './release.js';
 
@@ -8,19 +9,19 @@ export interface MetadataIdentity {
   readonly 'settings-schema': string;
 }
 
-export class SessionMismatch extends Error {}
+export class SessionMismatch extends MessageError {}
 
 function textField(value: Record<string, unknown>, field: string): string {
   const result = value[field];
   if (typeof result !== 'string' || result === '') {
-    throw new Error(`Extension metadata has no valid ${field}.`);
+    throw new MessageError('Extension metadata has no valid %s.', field);
   }
   return result;
 }
 
 function identity(value: unknown): MetadataIdentity {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new Error('Extension metadata must be an object.');
+    throw new MessageError('Extension metadata must be an object.');
   }
   const record = value as Record<string, unknown>;
   return {

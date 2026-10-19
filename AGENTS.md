@@ -45,6 +45,10 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   in a managed sandbox. Never test by modifying the working desktop implicitly.
 - Do not weaken strict typing, lint rules, formatting or coverage thresholds.
   Do not add suppression comments or speculative compatibility fallbacks.
+- Use the GNOME language with gettext domain k-switch; keep Russian and Latvian
+  catalogs complete. Core carries marked templates/data without gettext imports.
+  Localize automatic names only on creation and validate uniqueness afterwards;
+  keep user names and stable widget IDs independent of translated labels.
 - Shexli must analyze the actual release ZIP with hash-locked dependencies.
   Reject all findings, scanner failures and incomplete/inconsistent JSON reports;
   the scanner's zero exit code alone is not success. Preserve the negative controls.

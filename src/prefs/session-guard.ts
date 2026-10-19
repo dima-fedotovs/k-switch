@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { _, text, errorText } from '../shared/i18n.js';
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk?version=4.0';
@@ -13,7 +14,8 @@ class SessionGuard {
   readonly #metadata: unknown;
   readonly #file: Gio.File;
   readonly #page = new Adw.PreferencesPage({
-    title: 'Session update',
+    title: _('Session update'),
+    name: 'session-update',
     icon_name: 'view-refresh-symbolic',
   });
   readonly #status = new Adw.StatusPage({ icon_name: 'dialog-information-symbolic' });
@@ -35,7 +37,7 @@ class SessionGuard {
     this.#settings = settings;
     this.#metadata = metadata;
     this.#file = directory.get_child('metadata.json');
-    const retry = new Gtk.Button({ label: 'Check again', halign: Gtk.Align.CENTER });
+    const retry = new Gtk.Button({ label: _('Check again'), halign: Gtk.Align.CENTER });
     retry.connect('clicked', () => {
       void this.refresh();
     });
@@ -80,8 +82,8 @@ class SessionGuard {
     const request = new Gio.Cancellable();
     this.#request = request;
     this.#lock(
-      'Checking GNOME Shell…',
-      'Settings remain unavailable until the version check completes.',
+      _('Checking GNOME Shell…'),
+      _('Settings remain unavailable until the version check completes.'),
     );
     try {
       await this.#verify(request);
@@ -99,19 +101,24 @@ class SessionGuard {
   }
 
   async #verify(request: Gio.Cancellable): Promise<void> {
+    const running = await shellVersion(UUID, request);
+    if (!this.#current(request)) {
+      return;
+    }
+    // Read installed metadata last, including transfer-time checks: a Shell RPC
+    // must not extend the interval between the disk check and settings access.
     const installed = await installedMetadata(this.#file, request);
     if (!this.#current(request)) {
       return;
     }
     verifyMetadata(installed, this.#metadata);
-    const running = await shellVersion(UUID, request);
-    if (!this.#current(request)) {
-      return;
-    }
     if (running !== VERSION) {
       throw new SessionMismatch(
-        `GNOME Shell: ${running}. Preferences: ${VERSION}. Installed: ${installed['version-name']}. ` +
+        'GNOME Shell: %s. Preferences: %s. Installed: %s. ' +
           'The versions do not match. Start a new session before editing settings. Saved groups are preserved.',
+        running,
+        VERSION,
+        installed['version-name'],
       );
     }
   }
@@ -141,11 +148,11 @@ class SessionGuard {
     this.#request?.cancel();
     this.#lock(
       error instanceof SessionMismatch
-        ? 'Log out and sign in again'
-        : 'Cannot verify GNOME Shell version',
+        ? _('Log out and sign in again')
+        : _('Cannot verify GNOME Shell version'),
       error instanceof SessionMismatch
-        ? error.message
-        : `${String(error)} Settings have not been changed. Try checking again.`,
+        ? errorText(error)
+        : text('%s Settings have not been changed. Try checking again.', errorText(error)),
     );
   }
 

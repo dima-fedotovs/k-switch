@@ -85,6 +85,17 @@ within-group preset, preserving other options. Disabling restores previous group
 options unless independently changed. Caps remaps, including the combined
 Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
 
+## Interface language
+
+The interface follows the GNOME environment's language automatically. English is
+the source/fallback; Russian and Latvian catalogs cover all application messages,
+including notifications, validation and accessible descriptions. There is no
+separate language selector. Keyboard sources are independent of UI language.
+
+Automatic group names are translated once, when created, and checked for
+uniqueness in that language. Existing group names, source names/IDs and exported
+field names are preserved when the environment language changes.
+
 ## Configuration and migration
 
 On a fresh installation, **Primary** enables the first two sources in GNOME's
@@ -121,8 +132,8 @@ GSettings keys are retained for migration; subsequent edits use version 3.
 ## Development and architecture
 
 Requirements: Node.js 24.22 or newer in the 24.x series, npm, Python 3.12+, GJS, GNOME's
-`gnome-extensions` CLI, and `glib-compile-schemas`. Native UI checks also use
-Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
+`gnome-extensions` CLI, `glib-compile-schemas`, and GNU gettext tools. Native UI checks also use
+English, Russian and Latvian UTF-8 locales, Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
 compilation and typed linting. `.nvmrc` pins the tested Node 24.22.0 patch so CI
 uses the same runtime instead of an older preinstalled 24.x release.
 
@@ -138,7 +149,7 @@ npm run check
 `check` requires formatting, typed ESLint with zero warnings, shell syntax,
 strict TypeScript, unit tests with **100% statements/functions/branches/lines for
 `src/core`**, strict schema compilation, exact ZIP content verification (including Prettier style and a 200-character JavaScript
-line limit), and a
+line limit), catalog freshness/completeness/placeholder validation, and a
 real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
 hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
 Keep the virtual environment active when running checks or committing.
@@ -272,7 +283,12 @@ membership and real Caps cycling directly against its configured source order.
 Indicator tests toggle both options repeatedly with the menu open and ensure
 activating a group retains its menu item until event handling completes.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
-outstanding requests. Laptop acceptance after a full sign-out/sign-in remains a
+outstanding requests. English, Russian and Latvian fixtures check translated GTK controls and the
+Shell menu, literal names, focus and fresh FR/DE/ES setup. Gettext negative
+controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
+missing tools. Manual wording and visual acceptance of both translations is
+tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
+Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
 GitHub CI runs on the explicit `ubuntu-26.04` image and checks GNOME Shell 50
@@ -309,7 +325,7 @@ Before a stable release or an EGO submission:
   follow the [GNOME review guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html).
 - Complete manual acceptance on both computers, including real drag gestures,
   keyboard navigation, file-picker import/export and normal application input.
-- Add localization and decide whether to support older GNOME versions.
+- Decide whether to support older GNOME versions.
 
 The extension runs in the normal user session; login/lock-screen behavior is not
 promised. Ptyxis/GTK4 non-Latin application shortcuts are a separate investigation.

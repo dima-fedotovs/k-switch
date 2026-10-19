@@ -1,0 +1,378 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# K-switch lv translation.
+msgid ""
+msgstr ""
+"Project-Id-Version: K-switch\n"
+"Report-Msgid-Bugs-To: https://github.com/dima-fedotovs/k-switch/issues\n"
+"PO-Revision-Date: 2026-10-19 00:00+0000\n"
+"Last-Translator: K-switch contributors\n"
+"Language-Team: Latvian\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n!=0 ? 1 : 2);\n"
+
+msgid "Caps Lock"
+msgstr "Caps Lock"
+
+msgid "Shift+Caps Lock toggles normal Caps Lock."
+msgstr "Shift+Caps Lock ieslēdz un izslēdz Caps Lock."
+
+msgid "Shift + Caps Lock"
+msgstr "Shift + Caps Lock"
+
+msgid "Caps Lock keeps its normal function."
+msgstr "Caps Lock saglabā savu parasto darbību."
+
+msgid "Alt + Caps Lock"
+msgstr "Alt + Caps Lock"
+
+msgid "Menu"
+msgstr "Izvēlne"
+
+msgid "Shift+Menu opens the context menu."
+msgstr "Shift+Menu atver konteksta izvēlni."
+
+msgid "Scroll Lock"
+msgstr "Scroll Lock"
+
+msgid "Requires a Scroll Lock key."
+msgstr "Nepieciešams taustiņš Scroll Lock."
+
+msgid "Both Shift keys"
+msgstr "Abi Shift taustiņi"
+
+msgid "Press the left and right Shift keys together."
+msgstr "Vienlaikus nospiediet kreiso un labo Shift taustiņu."
+
+msgid "Alt + Shift"
+msgstr "Alt + Shift"
+
+msgid "May interfere with application shortcuts containing Alt+Shift."
+msgstr "Var traucēt lietotņu īsinājumtaustiņiem ar Alt+Shift."
+
+msgid "Ctrl + Shift"
+msgstr "Ctrl + Shift"
+
+msgid "May interfere with Ctrl+Shift+C/V and other application shortcuts."
+msgstr "Var traucēt Ctrl+Shift+C/V un citiem lietotņu īsinājumtaustiņiem."
+
+#, javascript-format
+msgid "Unknown shortcut: %s"
+msgstr "Nezināms īsinājumtaustiņš: %s"
+
+msgid "Configuration must be a JSON object."
+msgstr "Konfigurācijai jābūt JSON objektam."
+
+msgid ""
+"Configuration must contain exactly version, firstSource, secondSource, "
+"shortcut."
+msgstr ""
+"Konfigurācijā jābūt tikai laukiem version, firstSource, secondSource un "
+"shortcut."
+
+msgid "Unsupported configuration version."
+msgstr "Neatbalstīta konfigurācijas versija."
+
+msgid "Choose two valid XKB layout identifiers."
+msgstr "Izvēlieties divus derīgus XKB izkārtojumu identifikatorus."
+
+msgid "Choose two different layouts."
+msgstr "Izvēlieties divus atšķirīgus izkārtojumus."
+
+msgid "Shortcut must be a string."
+msgstr "Īsinājumtaustiņam jābūt virknei."
+
+msgid "GNOME input sources must be an array."
+msgstr "GNOME ievades avotiem jābūt masīvam."
+
+msgid "Invalid GNOME input source."
+msgstr "Nederīgs GNOME ievades avots."
+
+#, javascript-format
+msgid "Expected an object containing exactly: %s"
+msgstr "Tiek gaidīts objekts, kas satur tikai: %s"
+
+msgid "Expected nonempty text without control characters."
+msgstr "Tiek gaidīts netukšs teksts bez vadības rakstzīmēm."
+
+msgid "Expected a boolean."
+msgstr "Tiek gaidīta loģiska vērtība."
+
+msgid "Duplicate identifiers are not allowed."
+msgstr "Identifikatori nedrīkst atkārtoties."
+
+msgid "Expected a list."
+msgstr "Tiek gaidīts saraksts."
+
+msgid "Expected a GNOME input source identifier."
+msgstr "Tiek gaidīts GNOME ievades avota identifikators."
+
+msgid "The system group cannot be overridden."
+msgstr "Sistēmas grupu nevar aizstāt."
+
+#. Translators: Default group name, created once; unrelated to keyboard languages.
+msgid "Primary"
+msgstr "Pamatgrupa"
+
+msgid "Expected a shortcut string."
+msgstr "Tiek gaidīta īsinājumtaustiņa virkne."
+
+msgid "Group short names must be unique."
+msgstr "Grupu īsajiem nosaukumiem jābūt unikāliem."
+
+msgid "Group long names must be unique."
+msgstr "Grupu garajiem nosaukumiem jābūt unikāliem."
+
+#. Translators: %s is the sequence number of a newly created group.
+#, javascript-format
+msgid "Group %s"
+msgstr "Grupa %s"
+
+#, javascript-format
+msgid "Caps Lock is already assigned by %s. Remove that assignment first."
+msgstr "Caps Lock jau izmanto iestatījums %s. Vispirms noņemiet šo piešķīrumu."
+
+msgid "GNOME 50 keyboard handler was not found."
+msgstr "GNOME 50 tastatūras apstrādātājs nav atrasts."
+
+msgid "K-switch: Cannot open settings"
+msgstr "K-switch: nevar atvērt iestatījumus"
+
+msgid "K-switch: Cannot start"
+msgstr "K-switch: nevar palaist"
+
+#, javascript-format
+msgid "%s Correct the problem, then disable and re-enable K-switch."
+msgstr ""
+"%s Novērsiet problēmu, pēc tam izslēdziet un vēlreiz ieslēdziet K-switch."
+
+msgid "Invalid group shortcut. Use a key with modifiers or a function key."
+msgstr ""
+"Nederīgs grupas īsinājumtaustiņš. Izmantojiet taustiņu ar modifikatoriem vai "
+"funkciju taustiņu."
+
+msgid "Next and previous group shortcuts must be different."
+msgstr "Nākamās un iepriekšējās grupas īsinājumtaustiņiem jāatšķiras."
+
+msgid "Configuration exceeds 16 KiB."
+msgstr "Konfigurācija pārsniedz 16 KiB."
+
+msgid "Configuration exceeds 16 KiB; reduce group count before exporting."
+msgstr ""
+"Konfigurācija pārsniedz 16 KiB; pirms eksportēšanas samaziniet grupu skaitu."
+
+msgid "Skip when cycling groups"
+msgstr "Izlaist, pārslēdzot grupas"
+
+msgid "The group still participates when a layout is selected externally."
+msgstr ""
+"Grupa joprojām tiek ņemta vērā, ja izkārtojums izvēlēts ārpus K-switch."
+
+msgid "Drag to reorder groups"
+msgstr "Velciet, lai mainītu grupu secību"
+
+#, javascript-format
+msgid "Delete group %s"
+msgstr "Dzēst grupu %s"
+
+#, javascript-format
+msgid "Move group %s up"
+msgstr "Pārvietot grupu %s augšup"
+
+#, javascript-format
+msgid "Move group %s down"
+msgstr "Pārvietot grupu %s lejup"
+
+#, javascript-format
+msgid "Include %s"
+msgstr "Iekļaut %s"
+
+msgid "Missing source row."
+msgstr "Ievades avota rinda nav atrasta."
+
+msgid "Drag to reorder layouts"
+msgstr "Velciet, lai mainītu izkārtojumu secību"
+
+#, javascript-format
+msgid "Move %s up in %s"
+msgstr "Pārvietot %s augšup grupā %s"
+
+#, javascript-format
+msgid "Move %s down in %s"
+msgstr "Pārvietot %s lejup grupā %s"
+
+msgid "Group short name"
+msgstr "Grupas īsais nosaukums"
+
+msgid "Long name (optional)"
+msgstr "Garais nosaukums (nav obligāts)"
+
+msgid "Session update"
+msgstr "Sesijas atjauninājums"
+
+msgid "Check again"
+msgstr "Pārbaudīt vēlreiz"
+
+msgid "Checking GNOME Shell…"
+msgstr "Pārbauda GNOME Shell…"
+
+msgid "Settings remain unavailable until the version check completes."
+msgstr "Iestatījumi nav pieejami, līdz pabeigta versiju pārbaude."
+
+#, javascript-format
+msgid ""
+"GNOME Shell: %s. Preferences: %s. Installed: %s. The versions do not match. "
+"Start a new session before editing settings. Saved groups are preserved."
+msgstr ""
+"GNOME Shell: %s. Iestatījumi: %s. Instalētā versija: %s. Versijas nesakrīt. "
+"Pirms iestatījumu rediģēšanas sāciet jaunu sesiju. Saglabātās grupas netiek "
+"mainītas."
+
+msgid "Log out and sign in again"
+msgstr "Izrakstieties un pierakstieties vēlreiz"
+
+msgid "Cannot verify GNOME Shell version"
+msgstr "Nevar pārbaudīt GNOME Shell versiju"
+
+#, javascript-format
+msgid "%s Settings have not been changed. Try checking again."
+msgstr "%s Iestatījumi nav mainīti. Mēģiniet pārbaudīt vēlreiz."
+
+msgid "Switching and indicator"
+msgstr "Pārslēgšana un indikators"
+
+msgid "Switch within the group"
+msgstr "Pārslēgšana grupā"
+
+msgid "Keyboard behavior"
+msgstr "Taustiņu darbība"
+
+msgid "Next group shortcut (optional)"
+msgstr "Nākamās grupas īsinājumtaustiņš (nav obligāts)"
+
+msgid "Previous group shortcut (optional)"
+msgstr "Iepriekšējās grupas īsinājumtaustiņš (nav obligāts)"
+
+msgid "Group shortcuts"
+msgstr "Grupu īsinājumtaustiņi"
+
+msgid ""
+"Shortcuts work globally while K-switch is enabled, in applications and the "
+"overview. Example: <Super><Alt>space. Leave empty to disable."
+msgstr ""
+"Īsinājumtaustiņi darbojas visur, kamēr K-switch ir ieslēgts: lietotnēs un "
+"pārskatā. Piemērs: <Super><Alt>space. Lai atspējotu, atstājiet tukšu."
+
+msgid "Show group indicator"
+msgstr "Rādīt grupas indikatoru"
+
+msgid "The standard GNOME indicator is managed separately."
+msgstr "Standarta GNOME indikators tiek pārvaldīts atsevišķi."
+
+msgid "Show selected language"
+msgstr "Rādīt izvēlēto valodu"
+
+msgid ""
+"Off by default. Add the current input source after the short group name."
+msgstr ""
+"Pēc noklusējuma izslēgts. Pievieno pašreizējo ievades avotu aiz grupas īsā "
+"nosaukuma."
+
+msgid "Export K-switch settings"
+msgstr "Eksportēt K-switch iestatījumus"
+
+msgid "Import K-switch settings"
+msgstr "Importēt K-switch iestatījumus"
+
+msgid "Settings exported"
+msgstr "Iestatījumi eksportēti"
+
+msgid "Settings imported"
+msgstr "Iestatījumi importēti"
+
+#, javascript-format
+msgid "Imported; unavailable sources removed: %s"
+msgstr "Importēts; nepieejamie avoti noņemti: %s"
+
+msgid "Move settings between computers"
+msgstr "Iestatījumu pārvietošana starp datoriem"
+
+msgid "Configuration file"
+msgstr "Konfigurācijas fails"
+
+msgid "Only K-switch preferences are exported."
+msgstr "Tiek eksportēti tikai K-switch iestatījumi."
+
+msgid "Import…"
+msgstr "Importēt…"
+
+msgid "Export…"
+msgstr "Eksportēt…"
+
+msgid "New group"
+msgstr "Jauna grupa"
+
+msgid "Enable layouts with checkboxes and arrange their order."
+msgstr "Atzīmējiet vajadzīgos izkārtojumus un sakārtojiet to secību."
+
+msgid "Add group"
+msgstr "Pievienot grupu"
+
+msgid "Groups"
+msgstr "Grupas"
+
+msgid "Switching"
+msgstr "Pārslēgšana"
+
+msgid "Missing indicator menu."
+msgstr "Indikatora izvēlne nav atrasta."
+
+#, javascript-format
+msgid "Missing group menu item: %s"
+msgstr "Grupas izvēlnes vienums nav atrasts: %s"
+
+msgid "Settings…"
+msgstr "Iestatījumi…"
+
+#, javascript-format
+msgid ""
+"Cannot register group shortcut: %s. Choose another assignment and re-enable "
+"K-switch."
+msgstr ""
+"Nevar reģistrēt grupas īsinājumtaustiņu: %s. Izvēlieties citu un vēlreiz "
+"ieslēdziet K-switch."
+
+msgid "GNOME keyboard settings are locked by your administrator."
+msgstr "Administrators ir bloķējis GNOME tastatūras iestatījumus."
+
+#, javascript-format
+msgid "Could not complete the operation: %s"
+msgstr "Neizdevās pabeigt darbību: %s"
+
+#, javascript-format
+msgid "Extension metadata has no valid %s."
+msgstr "Paplašinājuma metadatos nav derīga lauka %s."
+
+msgid "Extension metadata must be an object."
+msgstr "Paplašinājuma metadatiem jābūt objektam."
+
+msgid ""
+"K-switch metadata and running code do not match. Log out and sign in again. "
+"Saved settings are preserved."
+msgstr ""
+"K-switch metadati neatbilst izpildāmajam kodam. Izrakstieties un "
+"pierakstieties vēlreiz. Saglabātie iestatījumi netiek mainīti."
+
+msgid "Cannot write locked group preferences."
+msgstr "Nevar saglabāt bloķētus grupu iestatījumus."
+
+msgid "GNOME Shell did not report the extension state."
+msgstr "GNOME Shell nepaziņoja paplašinājuma stāvokli."
+
+msgid "GNOME Shell is changing extension state. Try checking again."
+msgstr "GNOME Shell maina paplašinājuma stāvokli. Mēģiniet pārbaudīt vēlreiz."
+
+msgid "Extension metadata does not contain a version name."
+msgstr "Paplašinājuma metadatos nav versijas nosaukuma."

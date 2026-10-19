@@ -12,12 +12,12 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { prepareNativeRuntime } from './native-runtime.ts';
+import { NATIVE_LOCALES, prepareNativeRuntime } from './native-runtime.ts';
 
-function runFixture(mode: 'full' | 'fresh'): void {
+function runFixture(mode: 'full' | 'fresh', language: 'en' | 'ru' | 'lv'): void {
   const directory = mkdtempSync(`${tmpdir()}/k-switch-shell-${mode}-`);
   const extension = `${directory}/data/gnome-shell/extensions/k-switch@bug.guru`;
-  const artifact = mode === 'full' ? 'shell-test' : 'fresh-setup-test';
+  const artifact = `${mode === 'full' ? 'shell-test' : 'fresh-setup-test'}${language === 'en' ? '' : `-${language}`}`;
   const sources =
     mode === 'full'
       ? "[('xkb','us'),('xkb','ru'),('xkb','lv+tilde')]"
@@ -38,6 +38,8 @@ function runFixture(mode: 'full' | 'fresh'): void {
       {
         env: {
           ...process.env,
+          LANGUAGE: language,
+          LC_ALL: NATIVE_LOCALES[language],
           XDG_CONFIG_HOME: `${directory}/config`,
           XDG_DATA_HOME: `${directory}/data`,
           XDG_CACHE_HOME: `${directory}/cache`,
@@ -77,6 +79,7 @@ function runFixture(mode: 'full' | 'fresh'): void {
   }
 }
 
-for (const mode of ['full', 'fresh'] as const) {
-  runFixture(mode);
+runFixture('full', 'en');
+for (const language of ['en', 'ru', 'lv'] as const) {
+  runFixture('fresh', language);
 }

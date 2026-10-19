@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { N_ } from '../core/messages.js';
 import Gtk from 'gi://Gtk?version=4.0';
 import Gdk from 'gi://Gdk?version=4.0';
 import type { GroupConfiguration } from '../core/groups.js';
@@ -22,13 +23,13 @@ export function groupShortcutError(
 ): string | null {
   const { groupShortcut: next, previousGroupShortcut: previous } = configuration;
   if (!validAccelerator(next) || !validAccelerator(previous)) {
-    return 'Invalid group shortcut. Use a key with modifiers or a function key.';
+    return N_('Invalid group shortcut. Use a key with modifiers or a function key.');
   }
   if (next !== '' && previous !== '') {
     const [, nextKey, nextModifiers] = Gtk.accelerator_parse(next);
     const [, previousKey, previousModifiers] = Gtk.accelerator_parse(previous);
     if (nextKey === previousKey && nextModifiers === previousModifiers) {
-      return 'Next and previous group shortcuts must be different.';
+      return N_('Next and previous group shortcuts must be different.');
     }
   }
   return null;

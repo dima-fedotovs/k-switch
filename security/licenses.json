@@ -43,7 +43,7 @@
   },
   {
     "path": "scripts/build.ts",
-    "sourceSha256": "8fcd4a61723063f93267c32459e3dd7ac4697edfeffe1cbb5fc2aa92300629af",
+    "sourceSha256": "61da2ab0aa258cf7e0590cae364feefcec66f5355360a8871ed7680e2ffb161f",
     "expression": "JSON",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },

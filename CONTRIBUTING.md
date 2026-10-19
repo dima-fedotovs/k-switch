@@ -37,10 +37,32 @@ GNOME Shell 50's preferences host API; unrelated deprecated APIs stay forbidden.
 - Avoid blocking work inside GNOME Shell. Small configuration-file operations
   belong in the separate preferences process.
 - Preserve a readable, unminified JavaScript release artifact. Ship only runtime
-  modules, metadata, schema XML and license/provenance notices. Format compiled
+  modules, metadata, schema XML, compiled locale catalogs and license/provenance notices. Format compiled
   JavaScript with the project Prettier configuration, then check style and the
   independent 200-character line limit in the final ZIP. Native fixtures use that
   same formatted runtime.
+
+## Translation workflow
+
+Install GNU gettext (`xgettext`, `msgfmt`, `msgcmp`, `msgattrib`, `msgmerge`) and the
+`en_US.UTF-8`, `ru_RU.UTF-8`, `lv_LV.UTF-8` locales for native tests. Mark visible
+strings with `_()` or `text()`. Pure-core data uses `N_()` and `MessageError`
+templates/parameters; translation happens at the UI boundary. Never import
+gettext or a UI library into the pure core. Use string `%s` placeholders, with
+positional forms such as `%2$s` when reordering is needed.
+
+Run `npm run translations:update` after changing messages. Update `po/ru.po` and
+`po/lv.po` against `po/k-switch.pot` (for example with `msgmerge --update
+--backup=none`). Finish every translation and remove fuzzy markers, then run
+`npm run translations:check`. Do not translate stored identifiers, configuration
+fields, system source names or user names. Preserve widget IDs independently
+of translated labels. Add translator comments where wording needs context.
+
+The build checks catalog completeness and placeholders, compiles the MO files
+into `dist/locale`, and verifies their exact bytes in the ZIP. GTK and Shell tests
+run in all three languages. The automated gates cannot certify linguistic
+quality; final wording, layout and ordinary-input acceptance remain human tasks
+in issue #19. Do not close that issue with an implementation PR.
 
 ## Commits and releases
 

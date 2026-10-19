@@ -90,3 +90,23 @@ void test('new groups skip occupied default names after deletions and case chang
   assert.equal(nextGroupName([group('a', 'Primary')]), 'Group 2');
   assert.equal(nextGroupName([group('a', ' group 3 '), group('b', 'Group 4')]), 'Group 5');
 });
+
+void test('localized automatic names remain unique and existing names are preserved', () => {
+  assert.equal(
+    nextGroupName([group('a', ' GRUPA 3 '), group('b', 'Grupa 4')], 'Grupa %s'),
+    'Grupa 5',
+  );
+  const current = {
+    ...initialConfiguration([], 'caps', 'Pamatgrupa'),
+    groups: [group('a', 'User <name>')],
+  };
+  assert.deepEqual(parseStoredGroupConfiguration(JSON.stringify(current), 'Основная'), current);
+  const legacy = JSON.stringify({
+    version: 1,
+    firstSource: 'xkb:de',
+    secondSource: 'xkb:fr',
+    shortcut: 'caps',
+  });
+  assert.equal(parseGroupConfiguration(legacy, 'Pamatgrupa').groups[0]?.name, 'Pamatgrupa');
+  assert.equal(parseStoredGroupConfiguration(legacy, 'Основная').groups[0]?.name, 'Основная');
+});

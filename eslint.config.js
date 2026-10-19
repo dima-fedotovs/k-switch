@@ -53,6 +53,7 @@ export default tseslint.config(
       'src/prefs.ts',
       'src/prefs/**/*.ts',
       'test/prefs-smoke.ts',
+      'test/localized-prefs.ts',
       'test/session-guard-smoke.ts',
       'test/transfer-smoke.ts',
     ],
@@ -77,7 +78,17 @@ export default tseslint.config(
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: ['gi://*', 'resource://*', 'node:*', '../runtime/*', '../prefs/*'] },
+        {
+          patterns: [
+            'gi://*',
+            'resource://*',
+            'node:*',
+            'gettext',
+            '../shared/*',
+            '../runtime/*',
+            '../prefs/*',
+          ],
+        },
       ],
     },
   },
@@ -93,6 +104,15 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         { patterns: ['gi://Shell*', 'gi://Meta*', 'gi://St*', 'gi://Clutter*', '../runtime/*'] },
+      ],
+    },
+  },
+  {
+    files: ['src/shared/i18n.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: ['gi://*', 'resource://*', '../prefs/*', '../runtime/*'] },
       ],
     },
   },

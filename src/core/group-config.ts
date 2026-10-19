@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError, N_ } from './messages.js';
 import { getShortcut, parseConfiguration, type Configuration } from './config.js';
 import { type GroupConfiguration, type GroupEntry, type LayoutGroup } from './groups.js';
 import { restoreGroupNames, validateGroupNames } from './group-names.js';
@@ -10,7 +11,7 @@ function record(value: unknown, fields: string): Record<string, unknown> {
     Array.isArray(value) ||
     Object.keys(value).sort().join(',') !== fields
   ) {
-    throw new Error(`Expected an object containing exactly: ${fields}`);
+    throw new MessageError('Expected an object containing exactly: %s', fields);
   }
   return value as Record<string, unknown>;
 }
@@ -21,28 +22,28 @@ function text(value: unknown): string {
     value.trim().length === 0 ||
     Array.from(value).some((character) => character < ' ')
   ) {
-    throw new Error('Expected nonempty text without control characters.');
+    throw new MessageError('Expected nonempty text without control characters.');
   }
   return value;
 }
 
 function boolean(value: unknown): boolean {
   if (typeof value !== 'boolean') {
-    throw new Error('Expected a boolean.');
+    throw new MessageError('Expected a boolean.');
   }
   return value;
 }
 
 function unique<T>(values: readonly T[], key: (value: T) => string): readonly T[] {
   if (new Set(values.map(key)).size !== values.length) {
-    throw new Error('Duplicate identifiers are not allowed.');
+    throw new MessageError('Duplicate identifiers are not allowed.');
   }
   return values;
 }
 
 function list<T>(value: unknown, parse: (item: unknown) => T): readonly T[] {
   if (!Array.isArray(value)) {
-    throw new Error('Expected a list.');
+    throw new MessageError('Expected a list.');
   }
   return (value as unknown[]).map(parse);
 }
@@ -51,7 +52,7 @@ function entry(value: unknown): GroupEntry {
   const item = record(value, 'enabled,source');
   const source = text(item.source);
   if (!/^(xkb|ibus):.+$/u.test(source)) {
-    throw new Error('Expected a GNOME input source identifier.');
+    throw new MessageError('Expected a GNOME input source identifier.');
   }
   return { source, enabled: boolean(item.enabled) };
 }
@@ -60,7 +61,7 @@ function group(value: unknown, legacy: boolean): LayoutGroup {
   const item = record(value, legacy ? 'entries,id,name,skip' : 'entries,id,longName,name,skip');
   const id = text(item.id);
   if (id === 'all') {
-    throw new Error('The system group cannot be overridden.');
+    throw new MessageError('The system group cannot be overridden.');
   }
   return {
     id,
@@ -71,16 +72,21 @@ function group(value: unknown, legacy: boolean): LayoutGroup {
   };
 }
 
-export function migrate(configuration: Configuration): GroupConfiguration {
+export function migrate(
+  configuration: Configuration,
+  primaryName = N_('Primary'),
+): GroupConfiguration {
   return initialConfiguration(
     [configuration.firstSource, configuration.secondSource],
     configuration.shortcut,
+    primaryName,
   );
 }
 
 export function initialConfiguration(
   sources: readonly string[],
   shortcut: string,
+  primaryName = N_('Primary'),
 ): GroupConfiguration {
   return {
     version: 3,
@@ -92,7 +98,7 @@ export function initialConfiguration(
     groups: [
       {
         id: 'primary',
-        name: 'Primary',
+        name: primaryName,
         longName: '',
         skip: false,
         entries: [...new Set(sources)].map((source, index) => ({
@@ -110,7 +116,7 @@ function optionalText(value: unknown): string {
 
 function shortcutText(value: unknown): string {
   if (typeof value !== 'string') {
-    throw new Error('Expected a shortcut string.');
+    throw new MessageError('Expected a shortcut string.');
   }
   return value;
 }
@@ -132,7 +138,7 @@ function parseVersion(value: unknown): GroupConfiguration {
       : 'groupShortcut,groups,previousGroupShortcut,shortcut,showIndicator,showSource,version',
   );
   if (!legacy && item.version !== 3) {
-    throw new Error('Unsupported configuration version.');
+    throw new MessageError('Unsupported configuration version.');
   }
   const shortcut = text(item.shortcut);
   getShortcut(shortcut);
@@ -150,21 +156,27 @@ function parseVersion(value: unknown): GroupConfiguration {
   };
 }
 
-function parse(json: string, restoreNames: boolean): GroupConfiguration {
+function parse(json: string, restoreNames: boolean, primaryName: string): GroupConfiguration {
   const value: unknown = JSON.parse(json);
   const configuration =
     typeof value === 'object' && value !== null && 'version' in value && value.version === 1
-      ? migrate(parseConfiguration(json))
+      ? migrate(parseConfiguration(json), primaryName)
       : parseVersion(value);
   const groups = restoreNames ? restoreGroupNames(configuration.groups) : configuration.groups;
   validateGroupNames(groups);
   return { ...configuration, groups };
 }
 
-export function parseGroupConfiguration(json: string): GroupConfiguration {
-  return parse(json, false);
+export function parseGroupConfiguration(
+  json: string,
+  primaryName = N_('Primary'),
+): GroupConfiguration {
+  return parse(json, false, primaryName);
 }
 
-export function parseStoredGroupConfiguration(json: string): GroupConfiguration {
-  return parse(json, true);
+export function parseStoredGroupConfiguration(
+  json: string,
+  primaryName = N_('Primary'),
+): GroupConfiguration {
+  return parse(json, true, primaryName);
 }

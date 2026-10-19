@@ -62,7 +62,7 @@ async function verify(
     readConfiguration(settings).groups[0]?.entries.length === 3,
     'Every configured source must appear',
   );
-  button(window, 'Add group').emit('clicked');
+  button(window, 'add-group').emit('clicked');
   await settle();
   check(readConfiguration(settings).groups.length === 2, 'Add group must save');
   const checkbox = descendants(window).find(

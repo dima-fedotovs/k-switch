@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import { _ } from '../src/shared/i18n.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -38,6 +42,23 @@ export async function runFreshSetupChecks(settings: Gio.Settings): Promise<strin
         })),
       ),
     'Fresh membership follows saved source IDs and order',
+  );
+  check(group.name === _('Primary'), 'Fresh automatic name follows the GNOME language');
+  const indicator = Main.panel.statusArea['k-switch'];
+  check(indicator instanceof PanelMenu.Button, 'Fresh runtime has a group indicator');
+  if (
+    !(indicator instanceof PanelMenu.Button) ||
+    !(indicator.menu instanceof PopupMenu.PopupMenu)
+  ) {
+    throw new Error('Missing real indicator menu');
+  }
+  check(
+    indicator.menu
+      ._getMenuItems()
+      .some(
+        (item) => item instanceof PopupMenu.PopupMenuItem && item.label.text === _('Settings…'),
+      ),
+    'Panel menu loads the packaged translation',
   );
   const manager = Keyboard.getInputSourceManager();
   const first = Object.values(manager.inputSources).find(

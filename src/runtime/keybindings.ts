@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
 import type Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -40,8 +41,9 @@ export class GroupBindings {
         );
         // Main.wm returns a numeric action ID; Mutter uses zero for NONE.
         if (action === 0) {
-          throw new Error(
-            `Cannot register group shortcut: ${key}. Choose another assignment and re-enable K-switch.`,
+          throw new MessageError(
+            'Cannot register group shortcut: %s. Choose another assignment and re-enable K-switch.',
+            key,
           );
         }
         this.#registered.push(key);

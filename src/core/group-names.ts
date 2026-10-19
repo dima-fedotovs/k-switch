@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError, N_ } from './messages.js';
 import type { LayoutGroup } from './groups.js';
 
 function nameKey(value: string): string {
@@ -9,7 +10,11 @@ export function validateGroupNames(groups: readonly LayoutGroup[]): void {
   for (const field of ['name', 'longName'] as const) {
     const names = groups.map((group) => group[field]).filter((name) => name !== '');
     if (new Set(names.map(nameKey)).size !== names.length) {
-      throw new Error(`Group ${field === 'name' ? 'short' : 'long'} names must be unique.`);
+      const template =
+        field === 'name'
+          ? N_('Group short names must be unique.')
+          : N_('Group long names must be unique.');
+      throw new MessageError(template);
     }
   }
 }
@@ -49,11 +54,12 @@ export function restoreGroupNames(groups: readonly LayoutGroup[]): readonly Layo
   }));
 }
 
-export function nextGroupName(groups: readonly LayoutGroup[]): string {
+// Translators: %s is the sequence number of a newly created group.
+export function nextGroupName(groups: readonly LayoutGroup[], template = N_('Group %s')): string {
   const names = new Set(groups.map((group) => nameKey(group.name)));
   let index = groups.length + 1;
-  while (names.has(nameKey(`Group ${String(index)}`))) {
+  while (names.has(nameKey(template.replace('%s', String(index))))) {
     index += 1;
   }
-  return `Group ${String(index)}`;
+  return template.replace('%s', String(index));
 }

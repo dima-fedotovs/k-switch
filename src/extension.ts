@@ -2,6 +2,7 @@
 // Generated with AI for personal use.
 // Do NOT upload to extensions.gnome.org (EGO) unless you understand JavaScript
 // and can maintain this code.
+import { _, text, errorText } from './shared/i18n.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -31,7 +32,7 @@ export default class KSwitch extends Extension {
       verifyMetadata(installed, this.metadata);
       const session = new Session(this.getSettings(), () => {
         requestPreferences(this.uuid, request, (error) => {
-          Main.notifyError('K-switch: Cannot open settings', String(error));
+          Main.notifyError(_('K-switch: Cannot open settings'), errorText(error));
         });
       });
       this.#session = session;
@@ -42,8 +43,8 @@ export default class KSwitch extends Extension {
       }
       this.#stopSession();
       Main.notifyError(
-        'K-switch: Cannot start',
-        `${String(error)} Correct the problem, then disable and re-enable K-switch.`,
+        _('K-switch: Cannot start'),
+        text('%s Correct the problem, then disable and re-enable K-switch.', errorText(error)),
       );
     }
   }

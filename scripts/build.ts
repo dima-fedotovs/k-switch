@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { unzipSync } from 'fflate';
+import { checkLocaleResources, compileTranslations } from './translations.ts';
 import { checkPackagedJavaScript, formatRuntime } from './package-style.ts';
 
 const release: unknown = await import(
@@ -24,6 +25,7 @@ cpSync('.build/src', 'dist', {
   filter: (path) => statSync(path).isDirectory() || path.endsWith('.js'),
 });
 await formatRuntime('dist');
+compileTranslations('dist');
 for (const path of ['metadata.json', 'LICENSE', 'NOTICE', 'schemas']) {
   cpSync(path, `dist/${path}`, { recursive: true });
 }
@@ -41,6 +43,7 @@ execFileSync(
     '--extra-source=prefs',
     '--extra-source=LICENSE',
     '--extra-source=NOTICE',
+    '--extra-source=locale',
   ],
   { stdio: 'inherit' },
 );
@@ -65,6 +68,7 @@ assert(
 );
 const archive = `artifacts/${metadata.uuid}.shell-extension.zip`;
 const contents = unzipSync(readFileSync(archive));
+checkLocaleResources(contents);
 await checkPackagedJavaScript(contents);
 const entries = Object.keys(contents)
   .filter((entry) => !entry.endsWith('/'))

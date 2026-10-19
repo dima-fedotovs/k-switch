@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { _ } from '../shared/i18n.js';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -30,7 +32,7 @@ export class GroupIndicator {
     this.button.accessible_name = this.#label.text;
     const menu = this.button.menu;
     if (!(menu instanceof PopupMenu.PopupMenu)) {
-      throw new Error('Missing indicator menu.');
+      throw new MessageError('Missing indicator menu.');
     }
     const structure = JSON.stringify(
       controller.groups.map((item) => [item.id, groupMenuName(item)]),
@@ -42,7 +44,7 @@ export class GroupIndicator {
     for (const item of controller.groups) {
       const row = this.#rows.get(item.id);
       if (row === undefined) {
-        throw new Error(`Missing group menu item: ${item.id}`);
+        throw new MessageError('Missing group menu item: %s', item.id);
       }
       row.setSensitive(members(item, controller.available).length > 0);
       row.setOrnament(
@@ -65,7 +67,7 @@ export class GroupIndicator {
       menu.addMenuItem(row);
     }
     menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-    menu.addAction('Settings…', this.#preferences);
+    menu.addAction(_('Settings…'), this.#preferences);
   }
 
   destroy(): void {
