@@ -2,9 +2,11 @@
 
 Read README.md and CONTRIBUTING.md before modifying this project.
 
-- Use `k-switch@bug.guru`, schema `guru.bug.k-switch`, and D-Bus namespace
-  `guru.bug.KSwitch`. Do not add automatic migration or coordination for the
+- Use `k-switch@bug.guru`, schema `org.gnome.shell.extensions.guru.bug.k-switch`, and D-Bus namespace
+  `guru.bug.KSwitch`. Do not add automatic migration for the
   former Layout Pair identity; users can transfer configuration through files.
+- The 0.4.0 K-switch schema/path is also transferred through export/import.
+  Do not add automatic migration; document export before replacing that version.
 
 - Preserve overlapping ordered groups and checked membership. There is no system
   group: external sources absent from every group leave the active group sticky.
@@ -15,8 +17,9 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   case-insensitive comparison and Unicode composition normalization. Reject duplicate edits/imports;
   repair stored duplicates with suffixes while preserving IDs, order and membership.
   Display names literally and use stable IDs for control/focus identity.
-- Integrate next/previous actions with GNOME custom shortcuts bidirectionally;
-  own only our paths and preserve unrelated or repurposed shortcuts.
+- Register optional next/previous group bindings directly with Main.wm in NORMAL
+  and OVERVIEW. Do not add external transports or Custom Shortcuts integration.
+  Reject equivalent nonempty GTK accelerators on edit/import before writing.
 - Support all configured GNOME sources, including IBus. Reconcile against saved
   GNOME settings; transient engine unavailability must not delete membership.
 - Keep Caps Lock as the default within-group shortcut and Shift+Caps Lock for Caps.
@@ -24,6 +27,10 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   languages. Preserve explicit legacy overrides when migrating.
   Legacy source keys must have empty defaults. Native setup checks must also
   start without US/Russian sources and derive expectations from configured IDs.
+- Keep enable() synchronous with owned cancellable asynchronous initialization.
+  Verify metadata before obtaining GSettings or acquiring switching resources.
+  Keep the runtime-version RPC owned by the entry point until disable, including
+  pending/failed startup. Fail once with a notification; require re-enable.
 - Check Shell, preferences-code and on-disk versions before preferences can
   synchronize or write settings. Mismatches must preserve configuration and block
   editing until a matching session is available.
@@ -38,6 +45,13 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   in a managed sandbox. Never test by modifying the working desktop implicitly.
 - Do not weaken strict typing, lint rules, formatting or coverage thresholds.
   Do not add suppression comments or speculative compatibility fallbacks.
+- Use the GNOME language with gettext domain k-switch; keep Russian and Latvian
+  catalogs complete. Core carries marked templates/data without gettext imports.
+  Localize automatic names only on creation and validate uniqueness afterwards;
+  keep user names and stable widget IDs independent of translated labels.
+- Shexli must analyze the actual release ZIP with hash-locked dependencies.
+  Reject all findings, scanner failures and incomplete/inconsistent JSON reports;
+  the scanner's zero exit code alone is not success. Preserve the negative controls.
 - Update the README status for unfinished work. Keep commits scoped and tested.
 
 - Publish only to GitHub. Tags must pass the complete CI gate before releases.

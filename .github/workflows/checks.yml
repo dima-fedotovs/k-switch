@@ -13,9 +13,17 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/prepare
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: security/shexli-requirements.txt
+      - run: python -m pip install --require-hashes -r security/shexli-requirements.txt
       - run: npm run check
       - run: npm run quality:prove
+      - run: npm run quality:prove:shexli
       - run: npm run build
+      - run: npm run check:shexli
       - run: npm run release:assets
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -30,6 +38,11 @@ jobs:
           name: release-assets
           path: artifacts/roundtrip
       - run: cd artifacts/roundtrip && sha256sum --check SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: shexli-results
+          path: artifacts/shexli/
   native:
     name: GNOME 50 integration
     runs-on: ubuntu-26.04

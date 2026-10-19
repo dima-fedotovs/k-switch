@@ -4,7 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import { guardedPreferences } from '../src/prefs/session-guard.js';
-import { VERSION } from '../src/shared/release.js';
+import { UUID, VERSION } from '../src/shared/release.js';
 import { ShellVersionFixture } from './shell-version-fixture.js';
 import { verifyDeferredTransfers } from './transfer-smoke.js';
 
@@ -65,13 +65,168 @@ function captureGuard(): void {
   }
 }
 
+export async function verifyCachedSchema(settings: Gio.Settings): Promise<void> {
+  const resource = Gio.Resource.load(
+    '/usr/share/gnome-shell/org.gnome.Shell.Extensions.src.gresource',
+  );
+  Gio.resources_register(resource);
+  const { default: Preferences } = await import('../src/prefs.js');
+  const shell = new ShellVersionFixture();
+  const window = new Adw.PreferencesWindow();
+  const saved = settings.get_string('configuration');
+  const path = `${GLib.get_current_dir()}/dist`;
+  const preferences = new Preferences({
+    uuid: UUID,
+    name: 'Cached schema fixture',
+    description: 'Test stale Shell metadata',
+    'shell-version': ['50'],
+    'settings-schema': 'guru.bug.k-switch',
+    'version-name': VERSION,
+    dir: Gio.File.new_for_path(path),
+    path,
+  });
+  let settingsCalls = 0;
+  const getSettings = preferences.getSettings.bind(preferences);
+  preferences.getSettings = (): Gio.Settings => {
+    settingsCalls += 1;
+    return getSettings();
+  };
+  try {
+    await settle();
+    await preferences.fillPreferencesWindow(window);
+    window.present();
+    status(window, 'Log out and sign in again');
+    check(settings.get_string('configuration') === saved, 'Stale metadata preserves settings');
+    shell.version = VERSION;
+    shell.changed();
+    await settle();
+    status(window, 'Log out and sign in again');
+    check(
+      settings.get_string('configuration') === saved,
+      'Cached schema remains blocked after a version retry',
+    );
+    check(settingsCalls === 0, 'Cached metadata blocks the real host settings factory');
+  } finally {
+    window.close();
+    shell.destroy();
+    Gio.resources_unregister(resource);
+    settings.reset('configuration');
+  }
+}
+
+export async function verifyMetadataFailures(settings: Gio.Settings): Promise<void> {
+  const directory = GLib.dir_make_tmp('k-switch-metadata-guard-XXXXXX');
+  const file = Gio.File.new_for_path(`${directory}/metadata.json`);
+  const metadata = {
+    uuid: UUID,
+    'version-name': VERSION,
+    'settings-schema': settings.settings_schema.get_id(),
+  };
+  const shell = new ShellVersionFixture();
+  shell.version = VERSION;
+  const saved = settings.get_string('configuration');
+  const cases = [
+    ...['uuid', 'version-name', 'settings-schema'].map((field) => ({
+      contents: JSON.stringify({ ...metadata, [field]: 'wrong-value' }),
+      title: 'Log out and sign in again',
+    })),
+    ...['{}', '{', new Uint8Array([255])].map((contents) => ({
+      contents,
+      title: 'Cannot verify GNOME Shell version',
+    })),
+  ];
+  try {
+    await settle();
+    for (const fixture of cases) {
+      file.replace_contents(
+        fixture.contents,
+        null,
+        false,
+        Gio.FileCreateFlags.REPLACE_DESTINATION,
+        null,
+      );
+      const window = new Adw.PreferencesWindow();
+      let calls = 0;
+      await guardedPreferences(
+        window,
+        (): Gio.Settings => {
+          calls += 1;
+          return settings;
+        },
+        Gio.File.new_for_path(directory),
+        metadata,
+      );
+      window.present();
+      try {
+        status(window, fixture.title);
+        check(calls === 0, 'Invalid metadata blocks settings construction');
+        check(
+          settings.get_string('configuration') === saved,
+          'Metadata failures preserve stored bytes',
+        );
+      } finally {
+        window.close();
+      }
+    }
+    file.replace_contents(
+      JSON.stringify(metadata),
+      null,
+      false,
+      Gio.FileCreateFlags.REPLACE_DESTINATION,
+      null,
+    );
+    await closedVerification(settings, directory, metadata);
+    shell.changed();
+    await settle();
+  } finally {
+    shell.destroy();
+    file.delete(null);
+    GLib.rmdir(directory);
+  }
+}
+
+async function closedVerification(
+  settings: Gio.Settings,
+  directory: string,
+  metadata: unknown,
+): Promise<void> {
+  const saved = settings.get_string('configuration');
+  const window = new Adw.PreferencesWindow();
+  window.present();
+  let calls = 0;
+  const pending = guardedPreferences(
+    window,
+    (): Gio.Settings => {
+      calls += 1;
+      return settings;
+    },
+    Gio.File.new_for_path(directory),
+    metadata,
+  );
+  window.close();
+  await pending;
+  await settle();
+  check(calls === 0, 'Close during verification cancels late factory/editor creation');
+  check(settings.get_string('configuration') === saved, 'Closing verification preserves settings');
+}
+
 export async function verifySessionGuard(settings: Gio.Settings): Promise<void> {
   const shell = new ShellVersionFixture();
   const directory = GLib.dir_make_tmp('k-switch-guard-XXXXXX');
   const file = Gio.File.new_for_path(`${directory}/metadata.json`);
+  const metadata = {
+    uuid: UUID,
+    'version-name': VERSION,
+    'settings-schema': settings.settings_schema.get_id(),
+  };
+  let settingsCalls = 0;
+  const factory = (): Gio.Settings => {
+    settingsCalls += 1;
+    return settings;
+  };
   const writeVersion = (version: string): void => {
     file.replace_contents(
-      new TextEncoder().encode(JSON.stringify({ 'version-name': version })),
+      new TextEncoder().encode(JSON.stringify({ ...metadata, 'version-name': version })),
       null,
       false,
       Gio.FileCreateFlags.REPLACE_DESTINATION,
@@ -82,11 +237,12 @@ export async function verifySessionGuard(settings: Gio.Settings): Promise<void> 
   try {
     writeVersion(VERSION);
     await settle();
-    await guardedPreferences(window, settings, Gio.File.new_for_path(directory));
+    await guardedPreferences(window, factory, Gio.File.new_for_path(directory), metadata);
     window.present();
     await settle();
     captureGuard();
     status(window, 'Log out and sign in again');
+    check(settingsCalls === 0, 'Blocked checks never invoke the GSettings factory');
     check(
       settings.get_string('configuration') === '',
       'Version check must precede migration and writes',
@@ -135,12 +291,21 @@ async function verifyActiveRuntime(
   shell.state = 1;
   for (const [runtime, title] of [
     ['0.2.1', 'Log out and sign in again'],
+    ['<runtime>&100%', 'Log out and sign in again'],
     [null, 'Cannot verify GNOME Shell version'],
   ] as const) {
     shell.runtimeVersion = runtime;
     retry(window);
     await settle();
     status(window, title);
+    if (runtime === '<runtime>&100%') {
+      check(
+        widgets(window).some(
+          (item) => item instanceof Gtk.Label && item.get_text().includes(runtime),
+        ),
+        'Version diagnostics render literally instead of Pango markup',
+      );
+    }
     check(settings.get_string('configuration') === '', 'Active code must match before migration');
   }
   shell.runtimeVersion = VERSION;

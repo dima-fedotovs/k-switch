@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from './messages.js';
 import type { Shortcut } from './config.js';
 
 export interface OptionsPort {
@@ -47,8 +48,9 @@ export class OptionsLease {
     const previous = port.read();
     const conflict = findCapsConflict(previous, shortcut);
     if (conflict !== undefined) {
-      throw new Error(
-        `Caps Lock is already assigned by ${conflict}. Remove that assignment first.`,
+      throw new MessageError(
+        'Caps Lock is already assigned by %s. Remove that assignment first.',
+        conflict,
       );
     }
     this.#previous = groupOptions(previous);

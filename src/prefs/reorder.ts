@@ -17,7 +17,7 @@ export function action(
   icon: string,
   label: string,
   callback: () => void,
-  identity = label,
+  identity: string,
 ): Gtk.Button {
   const button = new Gtk.Button({
     icon_name: icon,
@@ -25,6 +25,7 @@ export function action(
     valign: Gtk.Align.CENTER,
   });
   control(button, identity);
+  button.update_property([Gtk.AccessibleProperty.LABEL], [label]);
   button.connect('clicked', callback);
   return button;
 }
@@ -34,6 +35,7 @@ export function dragHandle(token: string, description: string): Gtk.Image {
     icon_name: 'list-drag-handle-symbolic',
     tooltip_text: description,
   });
+  handle.update_property([Gtk.AccessibleProperty.LABEL], [description]);
   const drag = new Gtk.DragSource({ actions: Gdk.DragAction.MOVE });
   drag.set_content(Gdk.ContentProvider.new_for_value(token));
   handle.add_controller(drag);

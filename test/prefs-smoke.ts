@@ -7,8 +7,12 @@ import { buildPreferences } from '../src/prefs/window.js';
 import { readConfiguration, synchronize, writeConfiguration } from '../src/shared/settings.js';
 import { focusName } from '../src/prefs/focus.js';
 import { verifyScrolling } from './prefs-scroll.js';
-import { validAccelerator } from '../src/prefs/switching.js';
-import { verifySessionGuard } from './session-guard-smoke.js';
+import { groupShortcutError, validAccelerator } from '../src/prefs/accelerators.js';
+import {
+  verifyCachedSchema,
+  verifyMetadataFailures,
+  verifySessionGuard,
+} from './session-guard-smoke.js';
 import { verifyPreferencesRequests } from './preferences-request-smoke.js';
 import { verifyGroupNames } from './prefs-names.js';
 
@@ -58,7 +62,7 @@ async function verify(
     readConfiguration(settings).groups[0]?.entries.length === 3,
     'Every configured source must appear',
   );
-  button(window, 'Add group').emit('clicked');
+  button(window, 'add-group').emit('clicked');
   await settle();
   check(readConfiguration(settings).groups.length === 2, 'Add group must save');
   const checkbox = descendants(window).find(
@@ -201,7 +205,7 @@ async function verifyTransfer(
   await settle();
   const choice = descendants(window).find((widget) => widget instanceof Adw.ComboRow);
   check(choice instanceof Adw.ComboRow && choice.selected === 3, 'Imported shortcut appears');
-  const peer = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+  const peer = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
   writeConfiguration(settings, { ...readConfiguration(settings), shortcut: 'caps' });
   await settle();
   check(readConfiguration(peer).shortcut === 'caps', 'Updates after import reach peers');
@@ -213,6 +217,7 @@ async function verifyTransfer(
     !validAccelerator('<Control><Shift>') && !validAccelerator('a'),
     'Reject modifier-only and bare typing',
   );
+  await verifyDuplicateShortcuts(window, settings);
   await verifyIndicatorOptions(window, settings);
   await verifyScrolling(window, settings);
   const screenshot = GLib.getenv('K_SWITCH_SCREENSHOT');
@@ -223,6 +228,38 @@ async function verifyTransfer(
     );
     check(capture.wait_check(null), 'Screenshot must be saved');
   }
+}
+
+async function verifyDuplicateShortcuts(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
+  const original = readConfiguration(settings);
+  check(groupShortcutError(original) === null, 'Two empty bindings are valid');
+  for (const previous of ['<Ctrl><Alt>n', '<Alt><Control>n']) {
+    writeConfiguration(settings, { ...original, groupShortcut: '<Control><Alt>n' });
+    await settle();
+    const row = descendants(window).find(
+      (widget) => widget instanceof Adw.EntryRow && widget.name === 'previousGroupShortcut',
+    );
+    if (!(row instanceof Adw.EntryRow)) {
+      throw new Error('Missing previous shortcut editor');
+    }
+    row.text = previous;
+    row.emit('apply');
+    check(row.has_css_class('error'), 'Equivalent accelerators show an error');
+    check(readConfiguration(settings).previousGroupShortcut === '', 'Duplicate edits do not write');
+    writeConfiguration(settings, {
+      ...original,
+      groupShortcut: '<Ctrl><Alt>n',
+      previousGroupShortcut: previous,
+    });
+    await settle();
+    check(row.has_css_class('error'), 'Saved duplicates remain visible as errors');
+    check(
+      readConfiguration(settings).previousGroupShortcut === previous,
+      'Stored values are not rewritten',
+    );
+  }
+  writeConfiguration(settings, original);
+  await settle();
 }
 
 async function verifyIndicatorOptions(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
@@ -284,7 +321,7 @@ const application = new Adw.Application({
 let failure: unknown = null;
 application.connect('activate', () => {
   application.hold();
-  const settings = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+  const settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
   const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   desktop.set_value(
     'sources',
@@ -294,7 +331,9 @@ application.connect('activate', () => {
       ['xkb', 'lv+tilde'],
     ]),
   );
-  void verifySessionGuard(settings)
+  void verifyMetadataFailures(settings)
+    .then(() => verifyCachedSchema(settings))
+    .then(() => verifySessionGuard(settings))
     .then(verifyPreferencesRequests)
     .then(() => runWindow(settings, desktop))
     .catch((error: unknown) => {
@@ -309,12 +348,13 @@ application.connect('activate', () => {
 async function runWindow(settings: Gio.Settings, desktop: Gio.Settings): Promise<void> {
   synchronize(settings, desktop);
   const window = new Adw.PreferencesWindow({ application, title: 'K-switch' });
-  buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
+  const dispose = buildPreferences(window, settings, (): Promise<void> => Promise.resolve());
   window.present();
   try {
     await settle();
     await verify(window, settings, desktop);
   } finally {
+    dispose();
     window.close();
   }
 }

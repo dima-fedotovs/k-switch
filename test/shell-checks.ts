@@ -3,6 +3,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
+import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -10,14 +11,10 @@ import type { GroupConfiguration } from '../src/core/groups.js';
 import { readConfiguration, writeConfiguration } from '../src/shared/settings.js';
 import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 import { shellVersion } from '../src/shared/shell-version.js';
+import { runLifecycleChecks, failedStartup, type RuntimeExtension } from './runtime-lifecycle.js';
 import { UUID, VERSION } from '../src/shared/release.js';
 
-interface TestExtension {
-  readonly dir: Gio.File;
-  enable(): void;
-  disable(): void;
-  getSettings(): Gio.Settings;
-}
+type TestExtension = RuntimeExtension;
 
 function check(value: boolean, message: string): void {
   if (!value) {
@@ -55,17 +52,16 @@ export async function runShellChecks(extension: TestExtension): Promise<string[]
       Gio.Vfs.get_local().get_supported_uri_schemes().sort().join(','),
     'Shell fixture must use local GIO VFS',
   );
-  const launcher = new Gio.SubprocessLauncher({ flags: Gio.SubprocessFlags.NONE });
-  launcher.setenv('GDK_BACKEND', 'wayland', true);
-  launcher.setenv('WAYLAND_DISPLAY', GLib.getenv('WAYLAND_DISPLAY') ?? 'wayland-0', true);
-  const daemon = launcher.spawnv(['/usr/libexec/gsd-media-keys']);
-  try {
-    await settle();
-    await settle();
-    return await runChecks(extension);
-  } finally {
-    daemon.force_exit();
-  }
+  // GNOME may initially show the overview. Unassigned-key checks must start in
+  // the normal session so their keys cannot start an unrelated application search.
+  Main.overview.hide();
+  await settle();
+  await settle();
+  check(
+    Boolean(Main.actionMode & Shell.ActionMode.NORMAL),
+    'Keyboard fixture starts in normal mode',
+  );
+  return runChecks(extension);
 }
 
 async function runChecks(extension: TestExtension): Promise<string[]> {
@@ -116,6 +112,7 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   for (let index = 0; index < 3; index += 1) {
     extension.enable();
     await settle();
+    await settle();
     await selectGroup('Primary');
     await activate('us');
     await triggerSwitch();
@@ -124,14 +121,13 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
     await settle();
   }
   checked.push('Three enable/disable cycles without duplicate handlers');
-  await competingExtension(extension, checked);
-  await shortcutTakeover(extension, checked);
-  capsConflictCheck(extension, checked);
-  cachedRuntimeCheck(extension, checked);
+  checked.push(...(await runLifecycleChecks(extension)));
+  await bindingFailureCheck(extension, checked);
+  await capsConflictCheck(extension, checked);
   return checked;
 }
 
-function capsConflictCheck(extension: TestExtension, checked: string[]): void {
+async function capsConflictCheck(extension: TestExtension, checked: string[]): Promise<void> {
   const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   const settings = extension.getSettings();
   const options = desktop.get_strv('xkb-options');
@@ -140,13 +136,7 @@ function capsConflictCheck(extension: TestExtension, checked: string[]): void {
   try {
     writeConfiguration(settings, { ...configuration, shortcut: 'caps' });
     desktop.set_strv('xkb-options', [conflict]);
-    let rejected = false;
-    try {
-      extension.enable();
-    } catch (error) {
-      rejected = String(error).includes(conflict);
-    }
-    check(rejected, 'The Caps-to-Ctrl group toggle must reject startup');
+    await failedStartup(extension, conflict);
     check(
       desktop.get_strv('xkb-options').join(',') === conflict,
       'Rejected startup preserves the conflicting user option',
@@ -160,95 +150,30 @@ function capsConflictCheck(extension: TestExtension, checked: string[]): void {
   checked.push('Caps-to-Ctrl group-toggle conflict rejects startup and releases resources');
 }
 
-function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
-  const settings = extension.getSettings();
-  const saved = settings.get_string('configuration');
-  const file = extension.dir.get_child('metadata.json');
-  const [, bytes] = file.load_contents(null);
+async function bindingFailureCheck(extension: TestExtension, checked: string[]): Promise<void> {
+  const add = Main.wm.addKeybinding.bind(Main.wm);
+  const remove = Main.wm.removeKeybinding.bind(Main.wm);
+  const removed: string[] = [];
+  Main.wm.addKeybinding = (...args): number =>
+    args[0] === 'k-switch-previous-group' ? Meta.KeyBindingAction.NONE : add(...args);
+  Main.wm.removeKeybinding = (name): void => {
+    removed.push(name);
+    remove(name);
+  };
   try {
-    file.replace_contents(
-      new TextEncoder().encode(JSON.stringify({ 'version-name': '99.0.0' })),
-      null,
-      false,
-      Gio.FileCreateFlags.REPLACE_DESTINATION,
-      null,
-    );
-    let rejected = false;
-    try {
-      extension.enable();
-    } catch (error) {
-      rejected = String(error).includes('Log out and sign in again');
-    }
-    check(rejected, 'Cached runtime refuses changed on-disk code before starting');
-    check(
-      settings.get_string('configuration') === saved,
-      'Rejected startup preserves configuration',
-    );
-    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup creates no indicator');
+    await failedStartup(extension, 'Cannot register group shortcut');
+    check(removed.includes('k-switch-next-group'), 'Failure rolls back the first binding');
+    check(Main.panel.statusArea['k-switch'] === undefined, 'Failure releases the session');
   } finally {
-    file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
     extension.disable();
+    Main.wm.addKeybinding = add;
+    Main.wm.removeKeybinding = remove;
   }
-  checked.push(
-    'Cached runtime refuses mismatched installed versions without touching configuration',
-  );
-}
-
-async function shortcutTakeover(extension: TestExtension, checked: string[]): Promise<void> {
   extension.enable();
-  const settings = extension.getSettings();
-  const original = configureGroups(settings);
-  writeConfiguration(settings, {
-    ...readConfiguration(settings),
-    groups: readConfiguration(settings)
-      .groups.filter((group) => ['primary', 'latvian', 'reverse'].includes(group.id))
-      .map((group) => ({ ...group, skip: false })),
-  });
-  await settle();
-  await selectGroup('Primary');
-  const parent = new Gio.Settings({ schema_id: 'org.gnome.settings-daemon.plugins.media-keys' });
-  const path = parent
-    .get_strv('custom-keybindings')
-    .find((item) => item.endsWith('k-switch-next/'));
-  if (path === undefined) {
-    throw new Error('Missing system action before takeover');
-  }
-  const next = new Gio.Settings({
-    schema_id: 'org.gnome.settings-daemon.plugins.media-keys.custom-keybinding',
-    path,
-  });
-  next.set_string('command', 'true');
-  await settle();
-  writeConfiguration(settings, { ...readConfiguration(settings), groupShortcut: '<Super><Alt>p' });
-  await settle();
-  const seat = Shell.Global.get().get_stage().get_context().get_backend().get_default_seat();
-  const keyboard = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
-  await pressKeys(keyboard, [125, 56, 25]);
-  check(
-    settings.get_string('active-group') === 'latvian',
-    'Reassignment works through local fallback',
-  );
-  check(next.get_string('command') === 'true', 'Fallback preserves the repurposed command');
-  await pressKeys(keyboard, [125, 56, 48]);
   await settle();
   await settle();
-  check(
-    settings.get_string('active-group') === 'primary',
-    `Previous shortcut survives takeover: group=${settings.get_string('active-group')}, ` +
-      `binding=${readConfiguration(settings).previousGroupShortcut}, ` +
-      `paths=${parent.get_strv('custom-keybindings').join(',')}`,
-  );
   extension.disable();
-  check(
-    parent.get_strv('custom-keybindings').includes(path),
-    'Disable retains the user-owned path',
-  );
-  next.reset('command');
-  parent.set_strv('custom-keybindings', []);
-  writeConfiguration(settings, original);
-  checked.push(
-    'Live system action takeover enables working local shortcuts and preserves user ownership',
-  );
+  checked.push('Failed direct registration rolls back acquired bindings; re-enable succeeds');
 }
 
 function indicator(): PanelMenu.Button {
@@ -349,9 +274,9 @@ async function groupChecks(settings: Gio.Settings, checked: string[]): Promise<v
   await settle();
   check(
     settings.get_string('active-group') === 'reverse',
-    'System previous shortcut wraps backwards across three groups',
+    'Direct previous shortcut wraps backwards across three groups',
   );
-  await systemShortcutChecks(settings, keyboard);
+  await liveShortcutChecks(settings, keyboard);
   await selectGroup('Latvian');
   await indicatorChecks(settings);
   await indicatorMenuChecks(settings);
@@ -363,7 +288,7 @@ async function groupChecks(settings: Gio.Settings, checked: string[]): Promise<v
   await settle();
   check(indicator().visible, 'Indicator can be shown again');
   checked.push(
-    'Overlapping groups, long menu/short panel names, optional source, real next/previous system shortcuts and live reassignment',
+    'Overlapping groups, long menu/short panel names, optional source, real next/previous direct shortcuts and live reassignment',
   );
 }
 
@@ -416,38 +341,49 @@ async function indicatorMenuChecks(settings: Gio.Settings): Promise<void> {
   }
 }
 
-async function systemShortcutChecks(
+async function liveShortcutChecks(
   settings: Gio.Settings,
   keyboard: Clutter.VirtualInputDevice,
 ): Promise<void> {
-  const parent = new Gio.Settings({ schema_id: 'org.gnome.settings-daemon.plugins.media-keys' });
-  const paths = parent.get_strv('custom-keybindings');
-  check(
-    paths.some((path) => path.endsWith('k-switch-previous/')),
-    'Previous action is registered in system settings',
-  );
-  const path = paths.find((item) => item.endsWith('k-switch-next/'));
-  if (path === undefined) {
-    throw new Error('System next-group action is missing');
-  }
-  const next = new Gio.Settings({
-    schema_id: 'org.gnome.settings-daemon.plugins.media-keys.custom-keybinding',
-    path,
-  });
-  next.set_string('binding', '<Super><Alt>n');
+  writeConfiguration(settings, { ...readConfiguration(settings), groupShortcut: '<Super><Alt>n' });
   await settle();
-  await settle();
-  check(
-    readConfiguration(settings).groupShortcut === '<Super><Alt>n',
-    'Live system assignment reaches extension settings',
-  );
   await pressKeys(keyboard, [125, 56, 49]);
+  check(settings.get_string('active-group') === 'primary', 'A changed direct shortcut works live');
+  writeConfiguration(settings, { ...readConfiguration(settings), groupShortcut: '' });
   await settle();
-  await settle();
-  check(
-    settings.get_string('active-group') === 'primary',
-    'A changed system shortcut works through gsd-media-keys and D-Bus',
-  );
+  const active = settings.get_string('active-group');
+  await pressKeys(keyboard, [125, 56, 49]);
+  check(settings.get_string('active-group') === active, 'An empty assignment releases its key');
+  await groupModeChecks(settings, keyboard);
+}
+
+async function groupModeChecks(
+  settings: Gio.Settings,
+  keyboard: Clutter.VirtualInputDevice,
+): Promise<void> {
+  const configuration = readConfiguration(settings);
+  writeConfiguration(settings, { ...configuration, groupShortcut: 'F8' });
+  try {
+    for (const visible of [false, true]) {
+      if (visible) {
+        Main.overview.show();
+      } else {
+        Main.overview.hide();
+      }
+      await settle();
+      await settle();
+      const active = settings.get_string('active-group');
+      await pressKeys(keyboard, [66]);
+      check(
+        settings.get_string('active-group') !== active,
+        `Direct F8 binding works with overview=${String(visible)}`,
+      );
+    }
+  } finally {
+    Main.overview.hide();
+    writeConfiguration(settings, configuration);
+    await settle();
+  }
 }
 
 async function indicatorChecks(settings: Gio.Settings): Promise<void> {
@@ -634,24 +570,6 @@ async function pressKeys(
     keyboard.notify_key(GLib.get_monotonic_time(), key, Clutter.KeyState.RELEASED);
   }
   await settle();
-}
-
-async function competingExtension(extension: TestExtension, checked: string[]): Promise<void> {
-  const shell = new Gio.Settings({ schema_id: 'org.gnome.shell' });
-  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
-  const enabled = shell.get_strv('enabled-extensions');
-  extension.enable();
-  await settle();
-  shell.set_strv('enabled-extensions', [...enabled, 'switchtwolayouts@qtmax.dev']);
-  await settle();
-  check(
-    desktop.get_strv('xkb-options').join(',') === 'compose:ralt,grp:alt_shift_toggle',
-    'A competing extension must release our handler and options',
-  );
-  shell.set_strv('enabled-extensions', enabled);
-  extension.disable();
-  await settle();
-  checked.push('Enabling a known competing switcher safely releases our resources');
 }
 
 async function triggerSwitch(): Promise<void> {

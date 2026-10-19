@@ -5,8 +5,8 @@ import { getShortcut } from '../src/core/config.js';
 import { parseGroupConfiguration } from '../src/core/group-config.js';
 import { OptionsLease } from '../src/core/options.js';
 import { readConfiguration, writeConfiguration } from '../src/shared/settings.js';
-import { verifySystemShortcuts } from './system-shortcuts-smoke.js';
 import { verifyInitialSettings } from './initial-settings-smoke.js';
+import { verifyInstalledVersion } from './installed-version-smoke.js';
 import { readConfigurationFile, writeConfigurationFile } from '../src/prefs/config-files.js';
 
 function check(value: boolean, message: string): void {
@@ -15,7 +15,7 @@ function check(value: boolean, message: string): void {
   }
 }
 
-const settings = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+const settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
 const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
 verifyInitialSettings(settings, desktop);
 const imported = parseGroupConfiguration(
@@ -26,7 +26,7 @@ check(
   readConfiguration(settings).groups[0]?.entries[0]?.source === 'xkb:ru',
   'Configuration must round trip through GSettings',
 );
-const peer = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+const peer = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
 writeConfiguration(settings, { ...imported, showIndicator: false });
 check(
   !readConfiguration(peer).showIndicator,
@@ -89,5 +89,5 @@ try {
   }
   GLib.rmdir(directory);
 }
-verifySystemShortcuts(settings);
+await verifyInstalledVersion();
 console.warn('GJS + real GSettings and bounded configuration-file checks passed (memory backend).');

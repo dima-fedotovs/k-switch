@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from './messages.js';
 export interface SignalPort {
   findDefault(): number;
   block(id: number): void;
@@ -16,7 +17,7 @@ export class SignalOverride {
     this.#port = port;
     this.#original = port.findDefault();
     if (this.#original === 0) {
-      throw new Error('GNOME 50 keyboard handler was not found.');
+      throw new MessageError('GNOME 50 keyboard handler was not found.');
     }
     port.block(this.#original);
     try {

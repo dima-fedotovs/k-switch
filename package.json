@@ -1,6 +1,6 @@
 {
   "name": "gnome-k-switch",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,16 +11,20 @@
     "compile": "node scripts/compile.ts",
     "test": "npm run compile && c8 --all --include '.build/src/core/**/*.js' --check-coverage --lines 100 --functions 100 --branches 100 --statements 100 node --experimental-test-isolation=none --test '.build/test/*.test.js'",
     "build": "npm run compile && node scripts/build.ts",
-    "check": "npm run format:check && npm run lint && npm run lint:shell && npm run typecheck && npm test && npm run build && npm run test:gjs",
+    "check": "npm run format:check && npm run lint && npm run lint:shell && npm run typecheck && npm test && npm run build && npm run check:shexli && npm run test:gjs",
     "hooks:install": "git config core.hooksPath .githooks",
-    "test:gjs": "GSETTINGS_BACKEND=memory GSETTINGS_SCHEMA_DIR=$PWD/dist/schemas gjs -m .build/test/gjs-smoke.js",
+    "test:gjs": "node scripts/gjs-test.ts",
     "test:shell": "npm run build && node scripts/shell-test.ts",
     "test:prefs": "node scripts/prefs-test.ts",
     "lint:shell": "node scripts/check-shell.ts",
     "quality:prove": "node scripts/prove-quality.ts",
     "security": "node .build/scripts/security-scan.js",
     "release:assets": "node .build/scripts/release-tools.js assets",
-    "security:ci": "node .build/scripts/security-scan.js --ci"
+    "security:ci": "node .build/scripts/security-scan.js --ci",
+    "check:shexli": "node .build/scripts/shexli-check.js",
+    "quality:prove:shexli": "node .build/scripts/shexli-negative.js",
+    "translations:check": "node scripts/translations.ts",
+    "translations:update": "node scripts/translations.ts update"
   },
   "engines": {
     "node": ">=24.22.0 <25"

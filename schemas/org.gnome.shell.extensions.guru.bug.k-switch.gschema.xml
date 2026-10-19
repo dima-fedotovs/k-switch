@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="guru.bug.k-switch" path="/guru/bug/k-switch/">
+  <schema id="org.gnome.shell.extensions.guru.bug.k-switch" path="/org/gnome/shell/extensions/guru/bug/k-switch/">
     <key name="configuration" type="s">
       <default>''</default>
       <summary>Versioned group configuration; empty before migration</summary>

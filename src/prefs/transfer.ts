@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { _, text, errorText } from '../shared/i18n.js';
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import { reconcile } from '../core/groups.js';
-import { validAccelerator } from './switching.js';
+import { groupShortcutError } from './accelerators.js';
 import { configuredSources, readConfiguration, writeConfiguration } from '../shared/settings.js';
 import { readConfigurationFile, writeConfigurationFile } from './config-files.js';
 
@@ -24,7 +26,7 @@ function showError(
   if (error instanceof GLib.Error && error.matches(Gtk.DialogError, Gtk.DialogError.DISMISSED)) {
     return;
   }
-  window.add_toast(new Adw.Toast({ title: String(error), timeout: 8 }));
+  window.add_toast(new Adw.Toast({ use_markup: false, title: errorText(error), timeout: 8 }));
 }
 
 export function exportConfiguration(
@@ -36,7 +38,7 @@ export function exportConfiguration(
     return;
   }
   const dialog = new Gtk.FileDialog({
-    title: 'Export K-switch settings',
+    title: _('Export K-switch settings'),
     initial_name: 'k-switch.json',
   });
   dialog.save(window, access.cancellable, (_dialog, result) => {
@@ -59,7 +61,7 @@ export function importConfiguration(
   if (access.cancellable.is_cancelled()) {
     return;
   }
-  const dialog = new Gtk.FileDialog({ title: 'Import K-switch settings' });
+  const dialog = new Gtk.FileDialog({ title: _('Import K-switch settings') });
   dialog.open(window, access.cancellable, (_dialog, result) => {
     try {
       const file = dialog.open_finish(result);
@@ -84,7 +86,7 @@ async function exportFile(
   await access.verify();
   if (!access.cancellable.is_cancelled()) {
     writeConfigurationFile(file, readConfiguration(settings));
-    window.add_toast(new Adw.Toast({ title: 'Settings exported' }));
+    window.add_toast(new Adw.Toast({ use_markup: false, title: _('Settings exported') }));
   }
 }
 
@@ -98,11 +100,9 @@ async function importFile(
     return;
   }
   const configuration = readConfigurationFile(file);
-  if (
-    !validAccelerator(configuration.groupShortcut) ||
-    !validAccelerator(configuration.previousGroupShortcut)
-  ) {
-    throw new Error('Invalid group shortcut.');
+  const error = groupShortcutError(configuration);
+  if (error !== null) {
+    throw new MessageError(error);
   }
   await access.verify();
   if (access.cancellable.is_cancelled()) {
@@ -122,7 +122,7 @@ async function importFile(
   writeConfiguration(settings, reconcile(configuration, available));
   const title =
     removed.length === 0
-      ? 'Settings imported'
-      : `Imported; unavailable sources removed: ${removed.join(', ')}`;
-  window.add_toast(new Adw.Toast({ title, timeout: 8 }));
+      ? _('Settings imported')
+      : text('Imported; unavailable sources removed: %s', removed.join(', '));
+  window.add_toast(new Adw.Toast({ use_markup: false, title, timeout: 8 }));
 }

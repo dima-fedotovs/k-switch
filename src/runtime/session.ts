@@ -1,28 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
+import { errorText } from '../shared/i18n.js';
 import Gio from 'gi://Gio';
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { getShortcut } from '../core/config.js';
 import { OptionsLease, type OptionsPort } from '../core/options.js';
 import type { SignalOverride } from '../core/signal-override.js';
-import { GroupActions } from './actions.js';
-import {
-  createSystemShortcuts,
-  SHORTCUT_ACTIONS,
-  type ShortcutAction,
-  type SystemShortcuts,
-} from '../shared/system-shortcuts.js';
+import { GroupBindings } from './keybindings.js';
 import { GroupController } from './groups.js';
 import { GroupIndicator } from './indicator.js';
 import { interceptSwitching, reapplyCurrentLayout } from './keyboard.js';
 
-const COMPETING_EXTENSION = 'switchtwolayouts@qtmax.dev';
-
 export class Session {
   readonly #settings: Gio.Settings;
   readonly #desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
-  readonly #shell = new Gio.Settings({ schema_id: 'org.gnome.shell' });
   readonly #preferences: () => void;
   readonly #signals: { settings: Gio.Settings; id: number }[] = [];
   #controller: GroupController | null = null;
@@ -31,9 +22,7 @@ export class Session {
   #lease: OptionsLease | null = null;
   #shortcut = '';
   #refreshing = false;
-  readonly #bound: string[] = [];
-  #actions: GroupActions | null = null;
-  #systemShortcuts: SystemShortcuts | null = null;
+  #bindings: GroupBindings | null = null;
 
   constructor(settings: Gio.Settings, preferences: () => void) {
     this.#settings = settings;
@@ -41,42 +30,19 @@ export class Session {
   }
 
   start(): void {
-    if (this.#shell.get_strv('enabled-extensions').includes(COMPETING_EXTENSION)) {
-      throw new Error('Disable Switch Two Layouts before enabling K-switch.');
-    }
     this.#controller = new GroupController(this.#settings, this.#desktop, () => {
       this.#render();
     });
     this.#indicator = new GroupIndicator(this.#preferences);
     this.#override = interceptSwitching(() => this.#controller?.within());
     this.#applyOptions();
-    this.#actions = new GroupActions(this.#controller);
-    this.#systemShortcuts = createSystemShortcuts(
-      this.#settings,
-      (error) => {
-        Main.notifyError('K-switch', String(error));
-      },
-      (actions) => {
-        this.#bindLocal(actions);
-      },
-    );
-    if (!this.#systemShortcuts?.start()) {
-      this.#bindLocal();
-    }
+    this.#bindings = new GroupBindings(this.#settings, this.#controller);
+    this.#bindings.start();
     this.#listen(this.#settings, 'changed::configuration', () => {
       this.#refresh();
     });
     this.#listen(this.#desktop, 'changed::sources', () => {
       this.#refresh();
-    });
-    this.#listen(this.#shell, 'changed::enabled-extensions', () => {
-      if (this.#shell.get_strv('enabled-extensions').includes(COMPETING_EXTENSION)) {
-        this.destroy();
-        Main.notifyError(
-          'K-switch',
-          'Switch Two Layouts was enabled. Disable it, then re-enable K-switch.',
-        );
-      }
     });
     this.#render();
   }
@@ -85,46 +51,23 @@ export class Session {
     for (const signal of this.#signals.splice(0)) {
       signal.settings.disconnect(signal.id);
     }
-    for (const key of this.#bound.splice(0)) {
-      Main.wm.removeKeybinding(key);
-    }
-    this.#systemShortcuts?.destroy();
-    this.#systemShortcuts = null;
-    this.#actions?.destroy();
-    this.#actions = null;
-    this.#controller?.destroy();
+    const bindings = this.#bindings;
+    this.#bindings = null;
+    bindings?.destroy();
+    const controller = this.#controller;
     this.#controller = null;
-    this.#indicator?.destroy();
+    controller?.destroy();
+    const indicator = this.#indicator;
     this.#indicator = null;
-    this.#override?.release();
+    indicator?.destroy();
+    const override = this.#override;
     this.#override = null;
-    if (this.#lease !== null) {
-      this.#lease.release();
-      this.#lease = null;
+    override?.release();
+    const lease = this.#lease;
+    this.#lease = null;
+    if (lease !== null) {
+      lease.release();
       reapplyCurrentLayout();
-    }
-  }
-
-  #bindLocal(actions: readonly ShortcutAction[] = SHORTCUT_ACTIONS): void {
-    Main.notifyError(
-      'K-switch',
-      'System custom shortcuts are unavailable. Configure group shortcuts in K-switch.',
-    );
-    for (const action of actions) {
-      this.#bound.push(action.key);
-      Main.wm.addKeybinding(
-        action.key,
-        this.#settings,
-        Meta.KeyBindingFlags.NONE,
-        Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-        () => {
-          if (action.id === 'next') {
-            this.#controller?.next();
-          } else {
-            this.#controller?.previous();
-          }
-        },
-      );
     }
   }
 
@@ -141,7 +84,7 @@ export class Session {
       this.#controller?.refresh();
       this.#applyOptions();
     } catch (error) {
-      Main.notifyError('K-switch', String(error));
+      Main.notifyError('K-switch', errorText(error));
     } finally {
       this.#refreshing = false;
     }
@@ -165,7 +108,7 @@ export class Session {
       read: (): string[] => this.#desktop.get_strv('xkb-options'),
       write: (value): void => {
         if (!this.#desktop.set_strv('xkb-options', [...value])) {
-          throw new Error('GNOME keyboard settings are locked by your administrator.');
+          throw new MessageError('GNOME keyboard settings are locked by your administrator.');
         }
       },
     };

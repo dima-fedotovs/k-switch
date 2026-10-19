@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError } from '../core/messages.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import { ACTION_INTERFACE, ACTION_PATH } from './system-shortcuts.js';
+import { VERSION_INTERFACE, VERSION_PATH } from './version-rpc.js';
 
 export async function shellVersion(uuid: string, cancellable: Gio.Cancellable): Promise<string> {
   const metadata = await extensionInfo(uuid, cancellable);
@@ -12,14 +13,14 @@ export async function shellVersion(uuid: string, cancellable: Gio.Cancellable): 
     !('state' in metadata) ||
     typeof metadata.state !== 'number'
   ) {
-    throw new Error('GNOME Shell did not report the extension state.');
+    throw new MessageError('GNOME Shell did not report the extension state.');
   }
   // GNOME Shell 50 ExtensionState: ACTIVE=1; stable inactive states=2,3,4,6.
   if (metadata.state === 1) {
     return runtimeVersion(cancellable);
   }
   if (![2, 3, 4, 6].includes(metadata.state)) {
-    throw new Error('GNOME Shell is changing extension state. Try checking again.');
+    throw new MessageError('GNOME Shell is changing extension state. Try checking again.');
   }
   return version;
 }
@@ -49,12 +50,12 @@ function extensionInfo(uuid: string, cancellable: Gio.Cancellable): Promise<unkn
   });
 }
 
-function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
+export function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
   return new Promise((resolve, reject) => {
     Gio.DBus.session.call(
       'org.gnome.Shell',
-      ACTION_PATH,
-      ACTION_INTERFACE,
+      VERSION_PATH,
+      VERSION_INTERFACE,
       'GetRuntimeVersion',
       null,
       new GLib.VariantType('(s)'),
@@ -73,12 +74,6 @@ function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
   });
 }
 
-export function installedVersion(file: Gio.File): string {
-  const [, contents] = file.load_contents(null);
-  const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(contents));
-  return versionName(value);
-}
-
 function versionName(value: unknown): string {
   if (
     typeof value !== 'object' ||
@@ -86,7 +81,7 @@ function versionName(value: unknown): string {
     !('version-name' in value) ||
     typeof value['version-name'] !== 'string'
   ) {
-    throw new Error('Extension metadata does not contain a version name.');
+    throw new MessageError('Extension metadata does not contain a version name.');
   }
   return value['version-name'];
 }

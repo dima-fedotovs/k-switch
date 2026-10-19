@@ -1,0 +1,355 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# K-switch messages.
+msgid ""
+msgstr ""
+"Project-Id-Version: K-switch\n"
+"Report-Msgid-Bugs-To: https://github.com/dima-fedotovs/k-switch/issues\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Caps Lock"
+msgstr ""
+
+msgid "Shift+Caps Lock toggles normal Caps Lock."
+msgstr ""
+
+msgid "Shift + Caps Lock"
+msgstr ""
+
+msgid "Caps Lock keeps its normal function."
+msgstr ""
+
+msgid "Alt + Caps Lock"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+msgid "Shift+Menu opens the context menu."
+msgstr ""
+
+msgid "Scroll Lock"
+msgstr ""
+
+msgid "Requires a Scroll Lock key."
+msgstr ""
+
+msgid "Both Shift keys"
+msgstr ""
+
+msgid "Press the left and right Shift keys together."
+msgstr ""
+
+msgid "Alt + Shift"
+msgstr ""
+
+msgid "May interfere with application shortcuts containing Alt+Shift."
+msgstr ""
+
+msgid "Ctrl + Shift"
+msgstr ""
+
+msgid "May interfere with Ctrl+Shift+C/V and other application shortcuts."
+msgstr ""
+
+#, javascript-format
+msgid "Unknown shortcut: %s"
+msgstr ""
+
+msgid "Configuration must be a JSON object."
+msgstr ""
+
+msgid ""
+"Configuration must contain exactly version, firstSource, secondSource, "
+"shortcut."
+msgstr ""
+
+msgid "Unsupported configuration version."
+msgstr ""
+
+msgid "Choose two valid XKB layout identifiers."
+msgstr ""
+
+msgid "Choose two different layouts."
+msgstr ""
+
+msgid "Shortcut must be a string."
+msgstr ""
+
+msgid "GNOME input sources must be an array."
+msgstr ""
+
+msgid "Invalid GNOME input source."
+msgstr ""
+
+#, javascript-format
+msgid "Expected an object containing exactly: %s"
+msgstr ""
+
+msgid "Expected nonempty text without control characters."
+msgstr ""
+
+msgid "Expected a boolean."
+msgstr ""
+
+msgid "Duplicate identifiers are not allowed."
+msgstr ""
+
+msgid "Expected a list."
+msgstr ""
+
+msgid "Expected a GNOME input source identifier."
+msgstr ""
+
+msgid "The system group cannot be overridden."
+msgstr ""
+
+#. Translators: Default group name, created once; unrelated to keyboard languages.
+msgid "Primary"
+msgstr ""
+
+msgid "Expected a shortcut string."
+msgstr ""
+
+msgid "Group short names must be unique."
+msgstr ""
+
+msgid "Group long names must be unique."
+msgstr ""
+
+#. Translators: %s is the sequence number of a newly created group.
+#, javascript-format
+msgid "Group %s"
+msgstr ""
+
+#, javascript-format
+msgid "Caps Lock is already assigned by %s. Remove that assignment first."
+msgstr ""
+
+msgid "GNOME 50 keyboard handler was not found."
+msgstr ""
+
+msgid "K-switch: Cannot open settings"
+msgstr ""
+
+msgid "K-switch: Cannot start"
+msgstr ""
+
+#, javascript-format
+msgid "%s Correct the problem, then disable and re-enable K-switch."
+msgstr ""
+
+msgid "Invalid group shortcut. Use a key with modifiers or a function key."
+msgstr ""
+
+msgid "Next and previous group shortcuts must be different."
+msgstr ""
+
+msgid "Configuration exceeds 16 KiB."
+msgstr ""
+
+msgid "Configuration exceeds 16 KiB; reduce group count before exporting."
+msgstr ""
+
+msgid "Skip when cycling groups"
+msgstr ""
+
+msgid "The group still participates when a layout is selected externally."
+msgstr ""
+
+msgid "Drag to reorder groups"
+msgstr ""
+
+#, javascript-format
+msgid "Delete group %s"
+msgstr ""
+
+#, javascript-format
+msgid "Move group %s up"
+msgstr ""
+
+#, javascript-format
+msgid "Move group %s down"
+msgstr ""
+
+#, javascript-format
+msgid "Include %s"
+msgstr ""
+
+msgid "Missing source row."
+msgstr ""
+
+msgid "Drag to reorder layouts"
+msgstr ""
+
+#, javascript-format
+msgid "Move %s up in %s"
+msgstr ""
+
+#, javascript-format
+msgid "Move %s down in %s"
+msgstr ""
+
+msgid "Group short name"
+msgstr ""
+
+msgid "Long name (optional)"
+msgstr ""
+
+msgid "Session update"
+msgstr ""
+
+msgid "Check again"
+msgstr ""
+
+msgid "Checking GNOME Shell…"
+msgstr ""
+
+msgid "Settings remain unavailable until the version check completes."
+msgstr ""
+
+#, javascript-format
+msgid ""
+"GNOME Shell: %s. Preferences: %s. Installed: %s. The versions do not match. "
+"Start a new session before editing settings. Saved groups are preserved."
+msgstr ""
+
+msgid "Log out and sign in again"
+msgstr ""
+
+msgid "Cannot verify GNOME Shell version"
+msgstr ""
+
+#, javascript-format
+msgid "%s Settings have not been changed. Try checking again."
+msgstr ""
+
+msgid "Switching and indicator"
+msgstr ""
+
+msgid "Switch within the group"
+msgstr ""
+
+msgid "Keyboard behavior"
+msgstr ""
+
+msgid "Next group shortcut (optional)"
+msgstr ""
+
+msgid "Previous group shortcut (optional)"
+msgstr ""
+
+msgid "Group shortcuts"
+msgstr ""
+
+msgid ""
+"Shortcuts work globally while K-switch is enabled, in applications and the "
+"overview. Example: <Super><Alt>space. Leave empty to disable."
+msgstr ""
+
+msgid "Show group indicator"
+msgstr ""
+
+msgid "The standard GNOME indicator is managed separately."
+msgstr ""
+
+msgid "Show selected language"
+msgstr ""
+
+msgid ""
+"Off by default. Add the current input source after the short group name."
+msgstr ""
+
+msgid "Export K-switch settings"
+msgstr ""
+
+msgid "Import K-switch settings"
+msgstr ""
+
+msgid "Settings exported"
+msgstr ""
+
+msgid "Settings imported"
+msgstr ""
+
+#, javascript-format
+msgid "Imported; unavailable sources removed: %s"
+msgstr ""
+
+msgid "Move settings between computers"
+msgstr ""
+
+msgid "Configuration file"
+msgstr ""
+
+msgid "Only K-switch preferences are exported."
+msgstr ""
+
+msgid "Import…"
+msgstr ""
+
+msgid "Export…"
+msgstr ""
+
+msgid "New group"
+msgstr ""
+
+msgid "Enable layouts with checkboxes and arrange their order."
+msgstr ""
+
+msgid "Add group"
+msgstr ""
+
+msgid "Groups"
+msgstr ""
+
+msgid "Switching"
+msgstr ""
+
+msgid "Missing indicator menu."
+msgstr ""
+
+#, javascript-format
+msgid "Missing group menu item: %s"
+msgstr ""
+
+msgid "Settings…"
+msgstr ""
+
+#, javascript-format
+msgid ""
+"Cannot register group shortcut: %s. Choose another assignment and re-enable "
+"K-switch."
+msgstr ""
+
+msgid "GNOME keyboard settings are locked by your administrator."
+msgstr ""
+
+#, javascript-format
+msgid "Could not complete the operation: %s"
+msgstr ""
+
+#, javascript-format
+msgid "Extension metadata has no valid %s."
+msgstr ""
+
+msgid "Extension metadata must be an object."
+msgstr ""
+
+msgid ""
+"K-switch metadata and running code do not match. Log out and sign in again. "
+"Saved settings are preserved."
+msgstr ""
+
+msgid "Cannot write locked group preferences."
+msgstr ""
+
+msgid "GNOME Shell did not report the extension state."
+msgstr ""
+
+msgid "GNOME Shell is changing extension state. Try checking again."
+msgstr ""
+
+msgid "Extension metadata does not contain a version name."
+msgstr ""

@@ -2,7 +2,7 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import { UUID, VERSION } from '../src/shared/release.js';
-import { ACTION_INTERFACE, ACTION_PATH } from '../src/shared/system-shortcuts.js';
+import { VERSION_INTERFACE, VERSION_PATH } from '../src/shared/version-rpc.js';
 
 export class ShellVersionFixture {
   version: string | null = '0.2.1';
@@ -26,7 +26,7 @@ export class ShellVersionFixture {
       },
     );
     this.#runtime = Gio.DBusExportedObject.wrapJSObject(
-      `<node><interface name="${ACTION_INTERFACE}"><method name="GetRuntimeVersion"><arg type="s" direction="out"/></method></interface></node>`,
+      `<node><interface name="${VERSION_INTERFACE}"><method name="GetRuntimeVersion"><arg type="s" direction="out"/></method></interface></node>`,
       {
         GetRuntimeVersionAsync: (
           _parameters: unknown[],
@@ -44,7 +44,7 @@ export class ShellVersionFixture {
       },
     );
     this.#metadata.export(Gio.DBus.session, '/org/gnome/Shell');
-    this.#runtime.export(Gio.DBus.session, ACTION_PATH);
+    this.#runtime.export(Gio.DBus.session, VERSION_PATH);
     this.#owner = Gio.bus_own_name_on_connection(
       Gio.DBus.session,
       'org.gnome.Shell',

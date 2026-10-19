@@ -21,7 +21,8 @@ There is no automatically generated All layouts group.
 
 Short names and nonempty long names must each be unique, ignoring case,
 surrounding spaces and Unicode composition. Empty long names can repeat.
-Names containing `&`, `<` or `>` are displayed literally. Keyboard focus follows
+Names containing `&`, `<` or `>` are displayed literally. Error diagnostics also
+use plain text, including invalid imported values and version strings. Keyboard focus follows
 stable group/source IDs when controls are rebuilt, including after a rename.
 
 - Within a group, cycle through checked, currently available sources in order.
@@ -67,35 +68,35 @@ Unmodified function keys such as `F8` are also accepted. Separate modifier-only
 group switching such as Ctrl+Shift is unsupported: the XKB switching signal does
 not identify which modifier combination triggered it.
 
-While the extension is enabled, two actions appear under **GNOME Settings →
-Keyboard → View and Customize Shortcuts → Custom Shortcuts**:
+Group shortcuts are registered directly with GNOME Shell and work in applications
+and the overview while K-switch is enabled. Configure them in K-switch; they do
+not appear in GNOME Settings. No external command, helper or Custom Shortcuts
+registration is used. Disabling releases both bindings. Changes apply live.
+A registration failure rolls back acquired bindings and reports a startup error;
+choose another assignment and re-enable. Accelerators already owned by another
+component may be unavailable.
 
-- **K-switch: Next group**
-- **K-switch: Previous group**
-
-Assign either there or in our Switching page. Changes synchronize both ways.
-Deleting a system action clears its assignment; assigning a new nonempty shortcut
-in K-switch restores that action. GNOME's settings daemon handles the global
-key and invokes the corresponding extension D-Bus action. These are standard
-[GNOME custom shortcuts](https://help.gnome.org/gnome-help/keyboard-shortcuts-set),
-not replacements for GNOME's input-source shortcuts.
-
-Disabling removes only our registered paths and unexports our actions. Unrelated
-custom shortcuts and paths repurposed to another command are preserved. When the
-system schemas are unavailable, locked, or the reserved path belongs to another
-command, a notification explains that extension-local bindings are used instead;
-those fallback bindings do not appear in GNOME Settings. An accelerator already
-owned by another component may be unavailable; choose another combination.
-Losing ownership while enabled also switches to local bindings and reports the
-change. Only the affected action changes transport; other system actions keep
-their existing keyboard grabs.
-Removing both system actions clears both assignments in one update.
+Next and previous must be different when both are set: GTK-equivalent spellings
+such as `<Ctrl><Alt>n` and `<Alt><Control>n` are rejected on edit/import. Both may
+be empty. Existing assignments are never silently rewritten; saved duplicates
+are marked as errors in preferences until corrected.
 
 While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group
 options unless independently changed. Caps remaps, including the combined
 Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
-The competing Switch Two Layouts extension is detected; do not run both switchers together.
+
+## Interface language
+
+The interface follows the GNOME environment's language automatically. English is
+the source/fallback; Russian and Latvian catalogs cover all application messages,
+including notifications, validation and accessible descriptions. Update warnings
+are localized even when Shell metadata was cached before translations were added. There is no
+separate language selector. Keyboard sources are independent of UI language.
+
+Automatic group names are translated once, when created, and checked for
+uniqueness in that language. Existing group names, source names/IDs and exported
+field names are preserved when the environment language changes.
 
 ## Configuration and migration
 
@@ -129,18 +130,19 @@ and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut
 (next), `previousGroupShortcut`, `showIndicator`, `showSource`, and `version`.
 Source IDs include their type, for example `xkb:us` or `ibus:anthy`. Legacy
 GSettings keys are retained for migration; subsequent edits use version 3.
-System custom-shortcut names, commands and registration paths are local integration
-state and are not exported.
 
 ## Development and architecture
 
-Requirements: Node.js 24.22 or newer in the 24.x series, npm, GJS, GNOME's
-`gnome-extensions` CLI, and `glib-compile-schemas`. Native UI checks also use
-Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
+Requirements: Node.js 24.22 or newer in the 24.x series, npm, Python 3.12+, GJS, GNOME's
+`gnome-extensions` CLI, `glib-compile-schemas`, and GNU gettext tools. Native UI checks also use
+English, Russian and Latvian UTF-8 locales, Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
 compilation and typed linting. `.nvmrc` pins the tested Node 24.22.0 patch so CI
 uses the same runtime instead of an older preinstalled 24.x release.
 
 ```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --require-hashes -r security/shexli-requirements.txt
 npm ci
 npm run hooks:install
 npm run check
@@ -148,12 +150,16 @@ npm run check
 
 `check` requires formatting, typed ESLint with zero warnings, shell syntax,
 strict TypeScript, unit tests with **100% statements/functions/branches/lines for
-`src/core`**, strict schema compilation, exact ZIP content verification, and a
-real GJS/GSettings/file smoke test with an in-memory backend.
+`src/core`**, strict schema compilation, exact ZIP content verification (including Prettier style and a 200-character JavaScript
+line limit), catalog freshness/completeness/placeholder validation, and a
+real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
+hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
+Keep the virtual environment active when running checks or committing.
 
 ```sh
 npm run format
 npm run quality:prove
+npm run quality:prove:shexli
 npm run test:prefs
 npm run test:shell
 ```
@@ -165,6 +171,9 @@ local GIO VFS; the Shell fixture checks its local URI capabilities before
 behavioral tests and unmounts its private document portal before D-Bus shutdown.
 The launcher supplies all temporary XDG paths before starting D-Bus. The session
 script refuses mismatched paths before running any desktop settings command.
+Native fixtures load the same formatted production runtime checked inside the ZIP.
+Keyboard checks begin in the normal session; overview shortcuts are exercised
+separately, so an unassigned test combination cannot start an application search.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |
@@ -178,8 +187,12 @@ Results are in `artifacts/`.
 
 GNOME Shell and preferences run in separate processes. Lint rules enforce their
 boundaries. Only the runtime adapter uses Shell's internal source-manager API.
-Owned handlers, custom-shortcut registrations, D-Bus actions, local fallback
-keybindings, panel widgets and XKB options are released on disable.
+The entry point owns the runtime-version D-Bus service from enable to disable,
+including pending or failed initialization; it reports executing code, not readiness.
+A startup failure releases the working session and notifies once. Correct the
+cause and re-enable to retry.
+Owned handlers, the runtime-version D-Bus service, direct keybindings, panel
+widgets and XKB options are released on disable.
 The GNOME 50.1 adapter applies the current XKB ID explicitly after option changes:
 the installed `reapply()` passes an object where its helper expects an ID. Native
 tests press new shortcuts without an intervening source activation and reject
@@ -187,45 +200,53 @@ critical Shell log messages.
 
 ## Local installation
 
+**Updating from 0.4.0:** export settings using the old preferences window before
+replacing the extension. Close preferences, disable K-switch, install the new ZIP,
+then log out and sign in again. Open the new preferences and import that file.
+The old `/guru/bug/k-switch/` settings are left untouched and are not migrated
+automatically. Import preserves groups and shortcuts; the active group is local
+state and is not part of an export. A fresh installation still enables the first
+two configured GNOME input sources.
+
 ```sh
 npm run check
 gnome-extensions install --force artifacts/k-switch@bug.guru.shell-extension.zip
 ```
 
 Version 0.4.0 renames Layout Pair to **K-switch** and uses the domain `bug.guru`.
-The UUID is `k-switch@bug.guru`, GSettings schema is `guru.bug.k-switch` with path
-`/guru/bug/k-switch/`, and D-Bus action interface is `guru.bug.KSwitch` at
+The UUID is `k-switch@bug.guru`. Starting with 0.4.1, the GSettings schema is
+`org.gnome.shell.extensions.guru.bug.k-switch` with path
+`/org/gnome/shell/extensions/guru/bug/k-switch/`, following GNOME's extension
+review requirements. The D-Bus action interface remains `guru.bug.KSwitch` at
 `/guru/bug/KSwitch`.
-
-This is a separate extension identity with independent settings. It does not read
-or modify the old Layout Pair namespace, migrate its settings automatically, or
-coordinate with the old extension. To keep groups, export them from Layout Pair
-before removing it, then import the file into K-switch. Existing file formats
-remain supported. Remove the old extension before enabling the new one.
 
 For future K-switch updates, close preferences and disable K-switch before
 replacing the ZIP. On Wayland, log out and back in to load changed Shell code.
 On first installation, log out and back in if GNOME has not discovered the
-extension. Disable Switch Two Layouts before enabling K-switch:
+extension:
 
 ```sh
 gnome-extensions enable k-switch@bug.guru
 gnome-extensions prefs k-switch@bug.guru
 ```
 
-To return to the original setup, disable K-switch and re-enable the previous
-extension. Repository checks never install or enable it in the working desktop.
+Repository checks never install or enable it in the working desktop.
 
 Preferences query a version method provided by the active runtime code, rather
 than trusting Shell's cached metadata. For an inactive extension they use Shell's
-metadata; enabling cached code also checks the installed version before opening
-settings or acquiring resources. These versions must match the preferences code
+metadata; enabling cached code also checks the installed version asynchronously
+before opening settings or acquiring resources. The lifecycle entry point returns synchronously; initialization runs asynchronously.
+Disabling cancels its owned request before startup can acquire switching resources.
+Late results from a previous activation cannot affect a newer one. These versions must match the preferences code
 and installed `metadata.json` **before loading or migrating configuration**.
 If they differ, editing and import/export are unavailable: a
 status screen lists all three versions and asks you to log out and sign in again.
 Saved groups are preserved. Updates while the window is open also trigger this
 check. A failed version query keeps editing blocked and provides **Check again**.
 An inactive extension with matching versions can still be configured.
+Both entry points use the schema declared in metadata. UUID, version and schema
+are verified against installed metadata before obtaining GSettings. Stale schema
+metadata blocks startup/editing until a new session; no schema is substituted.
 Pending file dialogs are cancelled when editing is blocked or the window closes.
 Import/export recheck the versions immediately before writing, so a late dialog
 completion cannot bypass the guard or replace a file after cancellation.
@@ -249,9 +270,9 @@ Unit tests cover group policy, migration and configuration validation with
 Native checks exercise sticky unassigned sources, group overlap/order, separate
 short/long names, optional source display, indicator selection/visibility, real
 IBus activation, unavailable engines, source removal, virtual evdev input for all
-eight presets, both system group shortcuts through a private `gsd-media-keys`,
-live system reassignment and cleanup/re-enable/conflict scenarios. Real GSettings
-checks verify two-way shortcut sync, deletion/restoration and ownership cleanup.
+eight presets, both direct group shortcuts, live reassignment, empty assignments, registration
+rollback and cleanup/re-enable scenarios. GTK checks reject equivalent shortcut
+assignments on edit/import and display saved duplicates without rewriting them.
 GTK checks cover group and source editing, settings updates after import, and a
 three-group scrolling regression with focused/unfocused controls, rapid checkbox
 edits and external settings updates.
@@ -266,14 +287,32 @@ membership and real Caps cycling directly against its configured source order.
 Indicator tests toggle both options repeatedly with the menu open and ensure
 activating a group retains its menu item until event handling completes.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
-outstanding requests. Laptop acceptance after a full sign-out/sign-in remains a
+outstanding requests. English, Russian and Latvian fixtures check translated GTK controls and the
+Shell menu, literal names, focus and fresh FR/DE/ES setup. Gettext negative
+controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
+missing tools. Manual wording and visual acceptance of both translations is
+tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
+Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
 GitHub CI runs on the explicit `ubuntu-26.04` image and checks GNOME Shell 50
-before native tests. Required checks include quality/coverage, six negative
+before native tests. Required checks include quality/coverage, negative
 controls, GTK/headless GNOME, secret scanning, licenses,
-moderate-or-higher npm vulnerabilities, and CodeQL for TypeScript and Actions.
-Required scanner failures block CI. SCANOSS runs locally before a release,
+moderate-or-higher npm vulnerabilities, CodeQL for TypeScript and Actions, and
+Shexli. The Shexli gate parses JSON rather than trusting the scanner's exit code:
+errors, warnings and manual-review findings all block the build. Missing tools,
+scanner errors or diagnostics, malformed/inconsistent reports and incomplete file inventories
+also block it. The report's input, file counts and GNOME targets must match the
+actual ZIP. Controlled fixtures verify rejection of schema violations,
+synchronous Shell IO, unavailable/failing scanners and malformed/partial reports.
+The quality job scans the final ZIP again before uploading release assets; the
+release workflow publishes that same artifact. Reports are retained in the
+`shexli-results` Actions artifact.
+Required scanner failures block CI. ScanCode reports must match the exact input
+file inventory and include their result fields; directory-only, partial, duplicate
+or malformed reports and diagnostics are rejected before reading reported paths.
+The VCS metadata file `.gitignore` is scanned separately in explicit single-file
+mode because ScanCode skips it during directory traversal. SCANOSS runs locally before a release,
 separately from GitHub CI; no PR, scheduled or release job contacts its API.
 See [SECURITY.md](SECURITY.md) and [the source review](security/PROVENANCE.md).
 Scanner dependencies are hash-locked.
@@ -294,7 +333,7 @@ Before a stable release or an EGO submission:
   follow the [GNOME review guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html).
 - Complete manual acceptance on both computers, including real drag gestures,
   keyboard navigation, file-picker import/export and normal application input.
-- Add localization and decide whether to support older GNOME versions.
+- Decide whether to support older GNOME versions.
 
 The extension runs in the normal user session; login/lock-screen behavior is not
 promised. Ptyxis/GTK4 non-Latin application shortcuts are a separate investigation.

@@ -87,7 +87,7 @@ export class GroupController {
   }
 
   destroy(): void {
-    for (const id of this.#signals) {
+    for (const id of this.#signals.splice(0)) {
       this.#manager.disconnect(id);
     }
   }

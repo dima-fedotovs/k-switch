@@ -8,9 +8,15 @@ page: https://github.com/dima-fedotovs/k-switch/security/advisories/new
 Do not put credentials or private keyboard configuration into public issues.
 
 CI checks license notices, secrets, vulnerable dependencies,
-CodeQL findings, strict code quality and isolated GNOME behavior. No scanner
+CodeQL findings, Shexli extension-review rules, strict code quality and isolated GNOME behavior. No scanner
 proves the absence of vulnerabilities or plagiarism. Scanner outages fail the
 required hosted check rather than silently approving the source.
+
+Shexli uses a separate hash-locked Python environment. Its JSON report must be
+clean and match the final ZIP's file inventory and GNOME targets. Every finding
+(including warnings and manual-review items), scanner failure and incomplete
+report blocks CI and release publication. Synthetic controls exercise these
+failures, and the `shexli-results` Actions artifact retains the reports.
 
 Source provenance is a separate local maintainer check before tagging a release:
 `npm run build && npm run security`. SCANOSS is never invoked by GitHub Actions.

@@ -144,6 +144,69 @@ async function verifyDuplicateImport(fixture: Fixture): Promise<void> {
   }
 }
 
+async function verifyShortcutImport(fixture: Fixture): Promise<void> {
+  const { window, settings, dialogs, file } = fixture;
+  const saved = settings.get_string('configuration');
+  const existing = contents(file);
+  try {
+    for (const previous of ['<Ctrl><Alt>n', '<Alt><Control>n']) {
+      writeConfigurationFile(file, {
+        ...readConfiguration(settings),
+        groupShortcut: '<Control><Alt>n',
+        previousGroupShortcut: previous,
+      });
+      click(window, 'Import…');
+      dialogs.complete();
+      await settle();
+      check(
+        settings.get_string('configuration') === saved,
+        'Equivalent shortcut import is rejected before writing',
+      );
+    }
+  } finally {
+    file.replace_contents(existing, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+  }
+}
+
+async function verifyLiteralError(fixture: Fixture): Promise<void> {
+  const { window, settings, dialogs, file } = fixture;
+  const saved = settings.get_string('configuration');
+  const existing = contents(file);
+  const invalid = '<Control>100% & invalid';
+  const addToast = window.add_toast.bind(window);
+  const toasts: Adw.Toast[] = [];
+  window.add_toast = (toast): void => {
+    toasts.push(toast);
+    if (!toast.use_markup) {
+      addToast(toast);
+    }
+  };
+  try {
+    file.replace_contents(
+      JSON.stringify({ ...readConfiguration(settings), shortcut: invalid }),
+      null,
+      false,
+      Gio.FileCreateFlags.REPLACE_DESTINATION,
+      null,
+    );
+    click(window, 'Import…');
+    dialogs.complete();
+    await settle();
+    check(
+      toasts.length === 1 && toasts[0]?.use_markup === false,
+      'Own/import errors must disable markup',
+    );
+    check(
+      toasts[0]?.title?.includes(invalid) === true,
+      'Diagnostics preserve angle brackets, ampersands and percent signs literally',
+    );
+    check(settings.get_string('configuration') === saved, 'Invalid imports preserve settings');
+  } finally {
+    window.add_toast = addToast;
+    file.replace_contents(existing, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+  }
+}
+
 async function verifyClosedTransfer(fixture: Fixture): Promise<void> {
   const { window, dialogs, file } = fixture;
   const existing = contents(file);
@@ -174,6 +237,8 @@ export async function verifyDeferredTransfers(
     await verifyLockedTransfers(fixture);
     await verifyRuntimeChange(fixture);
     await verifyDuplicateImport(fixture);
+    await verifyShortcutImport(fixture);
+    await verifyLiteralError(fixture);
     await verifySuccessfulTransfers(fixture);
     await verifyClosedTransfer(fixture);
     console.warn('Deferred import/export cancellation and version rechecks passed.');

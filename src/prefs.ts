@@ -2,12 +2,16 @@
 // Generated with AI for personal use.
 // Do NOT upload to extensions.gnome.org (EGO) unless you understand JavaScript
 // and can maintain this code.
+import { GETTEXT_DOMAIN } from './shared/release.js';
 import type Adw from 'gi://Adw';
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { guardedPreferences } from './prefs/session-guard.js';
 
 export default class Preferences extends ExtensionPreferences {
   override fillPreferencesWindow(window: Adw.PreferencesWindow): Promise<void> {
-    return guardedPreferences(window, this.getSettings(), this.dir);
+    // Cached host metadata may predate gettext-domain. Use GNOME's supported
+    // initializer before constructing even the blocked-session interface.
+    this.initTranslations(GETTEXT_DOMAIN);
+    return guardedPreferences(window, () => this.getSettings(), this.dir, this.metadata);
   }
 }

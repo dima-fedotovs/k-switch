@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { MessageError, N_ } from './messages.js';
 export interface Configuration {
   readonly version: 1;
   readonly firstSource: string;
@@ -17,66 +18,66 @@ export interface Shortcut {
 export const SHORTCUTS: readonly Shortcut[] = [
   {
     id: 'caps',
-    label: 'Caps Lock',
+    label: N_('Caps Lock'),
     option: 'grp:caps_toggle',
     usesCaps: true,
-    description: 'Shift+Caps Lock toggles normal Caps Lock.',
+    description: N_('Shift+Caps Lock toggles normal Caps Lock.'),
   },
   {
     id: 'shift-caps',
-    label: 'Shift + Caps Lock',
+    label: N_('Shift + Caps Lock'),
     option: 'grp:shift_caps_toggle',
     usesCaps: true,
-    description: 'Caps Lock keeps its normal function.',
+    description: N_('Caps Lock keeps its normal function.'),
   },
   {
     id: 'alt-caps',
-    label: 'Alt + Caps Lock',
+    label: N_('Alt + Caps Lock'),
     option: 'grp:alt_caps_toggle',
     usesCaps: true,
-    description: 'Caps Lock keeps its normal function.',
+    description: N_('Caps Lock keeps its normal function.'),
   },
   {
     id: 'menu',
-    label: 'Menu',
+    label: N_('Menu'),
     option: 'grp:menu_toggle',
     usesCaps: false,
-    description: 'Shift+Menu opens the context menu.',
+    description: N_('Shift+Menu opens the context menu.'),
   },
   {
     id: 'scroll-lock',
-    label: 'Scroll Lock',
+    label: N_('Scroll Lock'),
     option: 'grp:sclk_toggle',
     usesCaps: false,
-    description: 'Requires a Scroll Lock key.',
+    description: N_('Requires a Scroll Lock key.'),
   },
   {
     id: 'both-shifts',
-    label: 'Both Shift keys',
+    label: N_('Both Shift keys'),
     option: 'grp:shifts_toggle',
     usesCaps: false,
-    description: 'Press the left and right Shift keys together.',
+    description: N_('Press the left and right Shift keys together.'),
   },
   {
     id: 'alt-shift',
-    label: 'Alt + Shift',
+    label: N_('Alt + Shift'),
     option: 'grp:alt_shift_toggle',
     usesCaps: false,
-    description: 'May interfere with application shortcuts containing Alt+Shift.',
+    description: N_('May interfere with application shortcuts containing Alt+Shift.'),
   },
   {
     id: 'ctrl-shift',
-    label: 'Ctrl + Shift',
+    label: N_('Ctrl + Shift'),
     option: 'grp:ctrl_shift_toggle',
     usesCaps: false,
-    description: 'May interfere with Ctrl+Shift+C/V and other application shortcuts.',
+    description: N_('May interfere with Ctrl+Shift+C/V and other application shortcuts.'),
   },
 ];
 
 export function getShortcut(id: string): Shortcut {
   const shortcut = SHORTCUTS.find((item) => item.id === id);
   if (shortcut === undefined) {
-    throw new Error(`Unknown shortcut: ${id}`);
+    throw new MessageError('Unknown shortcut: %s', id);
   }
   return shortcut;
 }
@@ -92,25 +93,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseConfiguration(text: string): Configuration {
   const value: unknown = JSON.parse(text);
   if (!isRecord(value)) {
-    throw new Error('Configuration must be a JSON object.');
+    throw new MessageError('Configuration must be a JSON object.');
   }
   const fields = Object.keys(value).sort();
   if (fields.join(',') !== 'firstSource,secondSource,shortcut,version') {
-    throw new Error(
+    throw new MessageError(
       'Configuration must contain exactly version, firstSource, secondSource, shortcut.',
     );
   }
   if (value.version !== 1) {
-    throw new Error('Unsupported configuration version.');
+    throw new MessageError('Unsupported configuration version.');
   }
   if (!isSource(value.firstSource) || !isSource(value.secondSource)) {
-    throw new Error('Choose two valid XKB layout identifiers.');
+    throw new MessageError('Choose two valid XKB layout identifiers.');
   }
   if (value.firstSource === value.secondSource) {
-    throw new Error('Choose two different layouts.');
+    throw new MessageError('Choose two different layouts.');
   }
   if (typeof value.shortcut !== 'string') {
-    throw new Error('Shortcut must be a string.');
+    throw new MessageError('Shortcut must be a string.');
   }
   getShortcut(value.shortcut);
   return {
@@ -123,7 +124,7 @@ export function parseConfiguration(text: string): Configuration {
 
 export function decodeSources(value: unknown): string[] {
   if (!Array.isArray(value)) {
-    throw new Error('GNOME input sources must be an array.');
+    throw new MessageError('GNOME input sources must be an array.');
   }
   return value.map((entry: unknown) => {
     if (
@@ -132,7 +133,7 @@ export function decodeSources(value: unknown): string[] {
       typeof entry[0] !== 'string' ||
       typeof entry[1] !== 'string'
     ) {
-      throw new Error('Invalid GNOME input source.');
+      throw new MessageError('Invalid GNOME input source.');
     }
     return `${entry[0]}:${entry[1]}`;
   });

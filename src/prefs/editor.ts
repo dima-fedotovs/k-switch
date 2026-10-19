@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { _, text } from '../shared/i18n.js';
+import { MessageError } from '../core/messages.js';
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk?version=4.0';
 import GLib from 'gi://GLib';
@@ -32,9 +34,9 @@ function skipRow(
   save: (value: boolean) => void,
 ): Adw.SwitchRow {
   const row = new Adw.SwitchRow({
-    title: 'Skip when cycling groups',
+    title: _('Skip when cycling groups'),
     active,
-    subtitle: 'The group still participates when a layout is selected externally.',
+    subtitle: _('The group still participates when a layout is selected externally.'),
   });
   control(row, `Skip group ${id}`);
   row.connect('notify::active', () => {
@@ -54,7 +56,7 @@ function moveGroup(context: EditorContext, from: number, to: number): void {
 function groupHeader(context: EditorContext, group: LayoutGroup): Adw.EntryRow {
   const index = context.configuration.groups.findIndex((item) => item.id === group.id);
   const row = nameRow(context, group, 'name');
-  row.add_prefix(dragHandle(`group:${group.id}`, 'Drag to reorder groups'));
+  row.add_prefix(dragHandle(`group:${group.id}`, _('Drag to reorder groups')));
   const up = groupAction(group, 'up', 'go-up-symbolic', () => {
     moveGroup(context, index, index - 1);
   });
@@ -91,7 +93,11 @@ function groupAction(
   callback: () => void,
 ): Gtk.Button {
   const label =
-    kind === 'delete' ? `Delete group ${group.name}` : `Move group ${group.name} ${kind}`;
+    kind === 'delete'
+      ? text('Delete group %s', group.name)
+      : kind === 'up'
+        ? text('Move group %s up', group.name)
+        : text('Move group %s down', group.name);
   return action(icon, label, callback, JSON.stringify(['group', group.id, kind]));
 }
 
@@ -99,9 +105,13 @@ function membership(context: EditorContext, id: string, entry: GroupEntry): Gtk.
   const check = new Gtk.CheckButton({
     active: entry.enabled,
     valign: Gtk.Align.CENTER,
-    tooltip_text: `Include ${sourceLabel(entry.source)}`,
+    tooltip_text: text('Include %s', sourceLabel(entry.source)),
   });
   control(check, `${id}:${entry.source}`);
+  check.update_property(
+    [Gtk.AccessibleProperty.LABEL],
+    [text('Include %s', sourceLabel(entry.source))],
+  );
   check.connect('toggled', () => {
     update(context, id, (group) => ({
       ...group,
@@ -120,7 +130,7 @@ function membership(context: EditorContext, id: string, entry: GroupEntry): Gtk.
 function sourceRow(context: EditorContext, group: LayoutGroup, index: number): Adw.ActionRow {
   const entry = group.entries[index];
   if (entry === undefined) {
-    throw new Error('Missing source row.');
+    throw new MessageError('Missing source row.');
   }
   const row = new Adw.ActionRow({
     title: sourceLabel(entry.source),
@@ -136,10 +146,10 @@ function sourceRow(context: EditorContext, group: LayoutGroup, index: number): A
       entries: moved(current.entries, from, to),
     }));
   };
-  row.add_prefix(dragHandle(`source:${group.id}:${entry.source}`, 'Drag to reorder layouts'));
+  row.add_prefix(dragHandle(`source:${group.id}:${entry.source}`, _('Drag to reorder layouts')));
   const up = action(
     'go-up-symbolic',
-    `Move ${entry.source} up in ${group.name}`,
+    text('Move %s up in %s', sourceLabel(entry.source), group.name),
     () => {
       move(index, index - 1);
     },
@@ -147,7 +157,7 @@ function sourceRow(context: EditorContext, group: LayoutGroup, index: number): A
   );
   const down = action(
     'go-down-symbolic',
-    `Move ${entry.source} down in ${group.name}`,
+    text('Move %s down in %s', sourceLabel(entry.source), group.name),
     () => {
       move(index, index + 1);
     },
@@ -174,7 +184,7 @@ function nameRow(
   field: 'name' | 'longName',
 ): Adw.EntryRow {
   const row = new Adw.EntryRow({
-    title: field === 'name' ? 'Group short name' : 'Long name (optional)',
+    title: field === 'name' ? _('Group short name') : _('Long name (optional)'),
     text: group[field],
     show_apply_button: true,
   });
