@@ -205,6 +205,10 @@ The entry point owns the runtime-version D-Bus service from enable to disable,
 including pending or failed initialization; it reports executing code, not readiness.
 A startup failure releases the working session and notifies once. Correct the
 cause and re-enable to retry.
+Repeated `enable()` calls preserve the owned activation, including pending or
+failed startup. Calling `disable()` without an owned activation is also harmless.
+Both unexpected calls emit a diagnostic warning in the Shell journal without a
+desktop notification. Disabling still cancels the original startup request.
 Owned handlers, the runtime-version D-Bus service, direct keybindings, panel
 widgets and XKB options are released on disable.
 The GNOME 50.1 adapter applies the current XKB ID explicitly after option changes:

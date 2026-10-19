@@ -18,6 +18,10 @@ export default class KSwitch extends Extension {
   #versionService: RuntimeVersionService | null = null;
 
   override enable(): void {
+    if (this.#request !== null) {
+      console.warn('K-switch: Ignoring repeated enable(); an activation is already owned.');
+      return;
+    }
     this.initTranslations(GETTEXT_DOMAIN);
     const request = new Gio.Cancellable();
     this.#request = request;
@@ -67,8 +71,12 @@ export default class KSwitch extends Extension {
 
   override disable(): void {
     const request = this.#request;
+    if (request === null) {
+      console.warn('K-switch: Ignoring disable(); no activation is owned.');
+      return;
+    }
     this.#request = null;
-    request?.cancel();
+    request.cancel();
     const versionService = this.#versionService;
     this.#versionService = null;
     try {

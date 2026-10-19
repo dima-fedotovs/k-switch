@@ -7,6 +7,7 @@ import { ExtensionState } from 'resource:///org/gnome/shell/misc/extensionUtils.
 import { runtimeVersion } from '../src/shared/shell-version.js';
 import { UUID, VERSION } from '../src/shared/release.js';
 import { verifyStartupRequests } from './startup-requests.js';
+import { verifyRepeatedLifecycle } from './repeated-lifecycle.js';
 
 export interface RuntimeExtension {
   readonly dir: Gio.File;
@@ -42,6 +43,8 @@ export async function failedStartup(extension: RuntimeExtension, expected: strin
   try {
     extension.enable();
     await settle();
+    await settle();
+    extension.enable();
     await settle();
     check(
       notifications.length === 1 &&
@@ -224,12 +227,14 @@ async function sessionModes(): Promise<void> {
 export async function runLifecycleChecks(extension: RuntimeExtension): Promise<string[]> {
   await managerCancellation(extension);
   await rapidRestart(extension);
+  await verifyRepeatedLifecycle(extension);
   await verifyStartupRequests(extension);
   await metadataChecks(extension);
   await sessionModes();
   return [
     'Real manager cancellation during pending metadata: inactive, no late resources or RPC',
     'Rapid restart preserves the new activation and restores XKB; lock/unlock cleans up',
+    'Repeated lifecycle calls warn without losing pending cancellation, duplicating resources or retrying failed startup',
     'UUID/version/schema, malformed/missing/invalid-UTF-8 metadata block before settings; failure notifies once and retains version RPC',
   ];
 }
