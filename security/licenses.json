@@ -61,19 +61,19 @@
   },
   {
     "path": "security/PROVENANCE.md",
-    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "sourceSha256": "3d61e01b660c125e68d90f026b4d198e14d1ab5bd7c3edc6ff3ab463a3b0f664",
     "expression": "(MIT OR GPL-1.0-or-later) AND GPL-2.0-or-later AND GPL-1.0-or-later",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "security/PROVENANCE.md",
-    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "sourceSha256": "3d61e01b660c125e68d90f026b4d198e14d1ab5bd7c3edc6ff3ab463a3b0f664",
     "expression": "GPL-3.0-or-later AND GPL-3.0-only",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   },
   {
     "path": "security/PROVENANCE.md",
-    "sourceSha256": "6a1400f10332d842ca27c2c0594faf8a89015290f0bb8524c687f84c135cfb47",
+    "sourceSha256": "3d61e01b660c125e68d90f026b4d198e14d1ab5bd7c3edc6ff3ab463a3b0f664",
     "expression": "JSON AND GPL-1.0-or-later",
     "reason": "Reviewed license names used as metadata/documentation or standard JSON API calls, not an additional source license; see security/PROVENANCE.md"
   }

@@ -27,6 +27,13 @@
       "matchSha256": "329b783e116b247f3f9e654feb976d98399fed67bc18576967d47a3a70c24f78",
       "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
       "upstream": "https://www.npmjs.com/package/create-codasaii-gnome-extension"
+    },
+    {
+      "path": "test/fixture-isolation.test.ts",
+      "sourceSha256": "51f1ce620214fd4b3929fa3fba595ab0bea89434ec80784861cbe0b64b535676",
+      "matchSha256": "ff9ecba61b9eb361a46e43dcf72b2771fa2759142d5580d710d44169f2d24119",
+      "reason": "Reviewed standard Node test imports only; upstream MD5 verified and test logic differs; see security/PROVENANCE.md",
+      "upstream": "https://github.com/openclaw/clawsweeper"
     }
   ]
 }

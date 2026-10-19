@@ -1,6 +1,10 @@
 # Source review
 
 Initial review: 2026-10-18. Scanner: SCANOSS 1.54.2, public OSS Knowledge Base.
+Pre-release review refreshed: 2026-10-19, covering all 62 fingerprinted source,
+test and script files. The current report adds the fixture test match below;
+the modified transfer implementation no longer returns a match. Its earlier
+review remains documented here and bound to its earlier file hash.
 The reviewed declarations and comparisons concern the tracked project source;
 they are not a universal originality certificate.
 
@@ -44,8 +48,16 @@ GNOME 50.1 resources; the runtime imports those modules instead of bundling them
   The retrieved file MD5 equals the scanner's file_hash. The common normalized
   run is the assert and execFileSync/spawnSync Node import sequence. The upstream
   tests sandbox-engine bootstrapping; K-switch tests redacted scanner rejection.
+- `test/fixture-isolation.test.ts`: seven hits against
+  `openclaw/clawsweeper`, revision `04e5065`, `test/setup-codex-context.test.ts`.
+  https://github.com/openclaw/clawsweeper/blob/04e5065/test/setup-codex-context.test.ts
+  The retrieved file MD5 equals the scanner's file_hash. The reported lines
+  cover standard Node assert, subprocess, filesystem, temporary-directory, path
+  and test imports. The upstream configures a Codex API context; K-switch checks
+  that an unisolated Shell fixture exits before invoking desktop settings tools.
+  No application or test logic is shared by this match.
 
-These four boilerplate matches are recorded in provenance.json with exact file
+These boilerplate matches are recorded in provenance.json with exact file
 and normalized match hashes. Changing a source file or match requires a new
 review. No whole project, directory or upstream license is blanket-excluded.
 
