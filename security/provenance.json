@@ -23,9 +23,9 @@
     },
     {
       "path": "src/runtime/indicator.ts",
-      "sourceSha256": "80eb23b267ea22be0a10b951138e2d752516168e596a8780c5ecfd2fef262460",
-      "matchSha256": "329b783e116b247f3f9e654feb976d98399fed67bc18576967d47a3a70c24f78",
-      "reason": "Reviewed standard GI/Node imports and framework boilerplate only; see security/PROVENANCE.md",
+      "sourceSha256": "371dc61bb4100c77e51ef868f03c5480402f85c76312d2b896d04269308643c2",
+      "matchSha256": "29a0e3569df3764131073a45b38344cfdc87fcfe9662b0b2f757b7acf3d2db24",
+      "reason": "Reviewed standard GI/Shell imports and label construction; upstream MD5 verified; group/menu behavior differs; see security/PROVENANCE.md",
       "upstream": "https://www.npmjs.com/package/create-codasaii-gnome-extension"
     },
     {
@@ -34,6 +34,13 @@
       "matchSha256": "ff9ecba61b9eb361a46e43dcf72b2771fa2759142d5580d710d44169f2d24119",
       "reason": "Reviewed standard Node test imports only; upstream MD5 verified and test logic differs; see security/PROVENANCE.md",
       "upstream": "https://github.com/openclaw/clawsweeper"
+    },
+    {
+      "path": "src/runtime/keybindings.ts",
+      "sourceSha256": "d557cfbe0df727e4cde37cf81f1bee2400a1decc935ec674ae41ca06d31f243c",
+      "matchSha256": "797e661d7cb66601224abdfee7cd1e3730806c0b7a3ed0eba7b118bbd5649c97",
+      "reason": "Reviewed common GI/Shell import scaffolding; upstream MD5 verified; group registration and rollback implementation differ; see security/PROVENANCE.md",
+      "upstream": "https://github.com/boerdereinar/copyous"
     }
   ]
 }
