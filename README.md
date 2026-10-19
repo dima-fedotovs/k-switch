@@ -303,7 +303,8 @@ controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
 missing tools. Manual wording and visual acceptance of both translations is
 tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
 Final visual acceptance of the new icon and display controls is part of that
-manual checklist. Version 0.4.2 is in development and has not been released.
+manual checklist. Version 0.4.2 is intended for testing; whole-project manual
+acceptance remains open.
 Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
@@ -395,3 +396,6 @@ To run the publication scans locally, install `security/requirements.txt` with
 Python 3.12 and `pip install --require-hashes`, plus Gitleaks 8.30.1. Build first,
 then run `npm run security`. This contacts the public SCANOSS API using WFP
 fingerprints. Generated reports remain under ignored `artifacts/security/`.
+Fingerprinting permits hidden parent paths inside the allowlisted staging tree,
+so managed worktrees below `.codex` are scanned too. The staging tree contains
+only tracked source, test and script files, excluding dependencies and build output.

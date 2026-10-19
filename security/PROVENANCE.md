@@ -1,13 +1,19 @@
 # Source review
 
 Initial review: 2026-10-18. Scanner: SCANOSS 1.54.2, public OSS Knowledge Base.
-Pre-release review refreshed: 2026-10-19 for version 0.4.1, covering all 81
-fingerprinted source, test and script files. One SCANOSS scan supplied the
-report; review and validation reuse that report without another API scan.
-Five files returned matches: three retain their existing exact approvals,
-the indicator approval is refreshed, and the keybindings match is reviewed
-below. The transfer implementation no longer returns a match; its earlier
-review remains documented here and bound to its earlier file hash.
+Pre-release review refreshed: 2026-10-19 for version 0.4.2, covering all 83
+fingerprinted source, test and script files. The fingerprint inventory was
+compared with the complete tracked source/test/script allowlist before submission.
+One complete SCANOSS report supplied the review; subsequent validation reuses it
+without another API scan. The initial managed-worktree attempt produced an empty
+fingerprint file because SCANOSS skipped the hidden `.codex` parent directory;
+the gate rejected it. Fingerprinting now allows hidden parent paths within the
+explicit staging tree, which excludes dependencies and build output.
+Four files returned matches, all retaining their existing exact file and match
+approvals: codeql-gate, security-negative, keybindings and fixture-isolation.
+No new matches require approval. The indicator and transfer implementations no
+longer return matches; their earlier reviews remain documented here and bound
+to their earlier file hashes.
 The reviewed declarations and comparisons concern the tracked project source;
 they are not a universal originality certificate.
 
@@ -31,12 +37,12 @@ GNOME 50.1 resources; the runtime imports those modules instead of bundling them
   that its application logic was copied. The source itself declares
   GPL-3.0-or-later; the scanner's component-level GPL-3.0-only label is less
   specific than that file's notice.
-- `src/runtime/indicator.ts`: four fingerprint hits against npm package
+- `src/runtime/indicator.ts` (0.4.1 historical review): four fingerprint hits against npm package
   `create-codasaii-gnome-extension@1.0.4`,
   `template/src/components/counter.ts`.
   https://www.npmjs.com/package/create-codasaii-gnome-extension/v/1.0.4
   Retrieved upstream MD5: `e78e76aa2d4ad660ad74be5bc7f95556`, matching the
-  report. The current span is K-switch lines 6-14 and upstream lines 5-13.
+  0.4.1 report. The reviewed span was K-switch lines 6-14 and upstream lines 5-13.
   Matching content is the standard Main/PanelMenu/PopupMenu import block and
   common label construction. Its counter arithmetic, settings model, GObject
   subclass and methods differ from K-switch's group indicator.

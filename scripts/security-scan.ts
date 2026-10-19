@@ -88,7 +88,8 @@ licenses(
 );
 function scanProvenance(): number {
   // The only network scan consumes this WFP, never a source folder or dependency tree.
-  run('scanoss-py', ['wfp', '-o', `${root}/source.wfp`, code]);
+  // The allowlisted staging tree may live below a hidden managed-worktree path.
+  run('scanoss-py', ['wfp', '--all-hidden', '-o', `${root}/source.wfp`, code]);
   run('scanoss-py', ['scan', '-w', `${root}/source.wfp`, '-o', `${root}/provenance.json`]);
   const files = Object.fromEntries(
     [...readFileSync(`${root}/source.wfp`, 'utf8').matchAll(/^file=[^,]+,[^,]+,(.+)$/gmu)].map(
