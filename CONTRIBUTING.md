@@ -6,6 +6,8 @@ The code should stay small enough to read and debug as part of GNOME Shell.
 
 Run `npm run check` before every commit. Run `npm run quality:prove` when changing
 the tooling, and native preference/Shell checks when changing GNOME integration.
+Keep the hash-locked Shexli environment active (see README setup). Run
+`npm run quality:prove:shexli` when changing the extension-review gate.
 CI repeats the fast gate and verifies that deliberate mistakes are rejected.
 
 Formatting is automatic through Prettier, including shell scripts. EditorConfig

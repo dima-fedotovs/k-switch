@@ -4,7 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import { guardedPreferences } from '../src/prefs/session-guard.js';
-import { VERSION } from '../src/shared/release.js';
+import { UUID, VERSION } from '../src/shared/release.js';
 import { ShellVersionFixture } from './shell-version-fixture.js';
 import { verifyDeferredTransfers } from './transfer-smoke.js';
 
@@ -62,6 +62,46 @@ function captureGuard(): void {
       Gio.SubprocessFlags.NONE,
     );
     check(capture.wait_check(null), 'Guard screenshot must be saved');
+  }
+}
+
+export async function verifyCachedSchema(settings: Gio.Settings): Promise<void> {
+  const resource = Gio.Resource.load(
+    '/usr/share/gnome-shell/org.gnome.Shell.Extensions.src.gresource',
+  );
+  Gio.resources_register(resource);
+  const { default: Preferences } = await import('../src/prefs.js');
+  const shell = new ShellVersionFixture();
+  const window = new Adw.PreferencesWindow();
+  const saved = settings.get_string('configuration');
+  const path = `${GLib.get_current_dir()}/dist`;
+  const preferences = new Preferences({
+    uuid: UUID,
+    name: 'Cached schema fixture',
+    description: 'Test stale Shell metadata',
+    'shell-version': ['50'],
+    'settings-schema': 'guru.bug.k-switch',
+    dir: Gio.File.new_for_path(path),
+    path,
+  });
+  try {
+    await settle();
+    await preferences.fillPreferencesWindow(window);
+    window.present();
+    status(window, 'Log out and sign in again');
+    check(settings.get_string('configuration') === saved, 'Stale metadata preserves settings');
+    shell.version = VERSION;
+    shell.changed();
+    await settle();
+    check(
+      widgets(window).some((item) => item instanceof Gtk.CheckButton),
+      'Preferences use the shipped schema after the Shell version becomes current',
+    );
+  } finally {
+    window.close();
+    shell.destroy();
+    Gio.resources_unregister(resource);
+    settings.reset('configuration');
   }
 }
 

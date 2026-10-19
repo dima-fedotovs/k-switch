@@ -8,7 +8,7 @@ import { readConfiguration, synchronize, writeConfiguration } from '../src/share
 import { focusName } from '../src/prefs/focus.js';
 import { verifyScrolling } from './prefs-scroll.js';
 import { validAccelerator } from '../src/prefs/switching.js';
-import { verifySessionGuard } from './session-guard-smoke.js';
+import { verifyCachedSchema, verifySessionGuard } from './session-guard-smoke.js';
 import { verifyPreferencesRequests } from './preferences-request-smoke.js';
 import { verifyGroupNames } from './prefs-names.js';
 
@@ -294,7 +294,8 @@ application.connect('activate', () => {
       ['xkb', 'lv+tilde'],
     ]),
   );
-  void verifySessionGuard(settings)
+  void verifyCachedSchema(settings)
+    .then(() => verifySessionGuard(settings))
     .then(verifyPreferencesRequests)
     .then(() => runWindow(settings, desktop))
     .catch((error: unknown) => {

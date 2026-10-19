@@ -134,13 +134,16 @@ state and are not exported.
 
 ## Development and architecture
 
-Requirements: Node.js 24.22 or newer in the 24.x series, npm, GJS, GNOME's
+Requirements: Node.js 24.22 or newer in the 24.x series, npm, Python 3.12+, GJS, GNOME's
 `gnome-extensions` CLI, and `glib-compile-schemas`. Native UI checks also use
 Xvfb, D-Bus and ImageMagick's `import` command. TypeScript 6.0.3 is pinned for
 compilation and typed linting. `.nvmrc` pins the tested Node 24.22.0 patch so CI
 uses the same runtime instead of an older preinstalled 24.x release.
 
 ```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --require-hashes -r security/shexli-requirements.txt
 npm ci
 npm run hooks:install
 npm run check
@@ -149,11 +152,14 @@ npm run check
 `check` requires formatting, typed ESLint with zero warnings, shell syntax,
 strict TypeScript, unit tests with **100% statements/functions/branches/lines for
 `src/core`**, strict schema compilation, exact ZIP content verification, and a
-real GJS/GSettings/file smoke test with an in-memory backend.
+real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
+hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
+Keep the virtual environment active when running checks or committing.
 
 ```sh
 npm run format
 npm run quality:prove
+npm run quality:prove:shexli
 npm run test:prefs
 npm run test:shell
 ```
@@ -187,6 +193,14 @@ critical Shell log messages.
 
 ## Local installation
 
+**Updating from 0.4.0:** export settings using the old preferences window before
+replacing the extension. Close preferences, disable K-switch, install the new ZIP,
+then log out and sign in again. Open the new preferences and import that file.
+The old `/guru/bug/k-switch/` settings are left untouched and are not migrated
+automatically. Import preserves groups and shortcuts; the active group is local
+state and is not part of an export. A fresh installation still enables the first
+two configured GNOME input sources.
+
 ```sh
 npm run check
 gnome-extensions install --force artifacts/k-switch@bug.guru.shell-extension.zip
@@ -198,14 +212,6 @@ The UUID is `k-switch@bug.guru`. Starting with 0.4.1, the GSettings schema is
 `/org/gnome/shell/extensions/guru/bug/k-switch/`, following GNOME's extension
 review requirements. The D-Bus action interface remains `guru.bug.KSwitch` at
 `/guru/bug/KSwitch`.
-
-**Updating from 0.4.0:** export settings using the old preferences window before
-replacing the extension. Close preferences, disable K-switch, install the new ZIP,
-then log out and sign in again. Open the new preferences and import that file.
-The old `/guru/bug/k-switch/` settings are left untouched and are not migrated
-automatically. Import preserves groups and shortcuts; the active group is local
-state and is not part of an export. A fresh installation still enables the first
-two configured GNOME input sources.
 
 This is a separate extension identity with independent settings. It does not read
 or modify the old Layout Pair namespace, migrate its settings automatically, or
@@ -237,6 +243,8 @@ status screen lists all three versions and asks you to log out and sign in again
 Saved groups are preserved. Updates while the window is open also trigger this
 check. A failed version query keeps editing blocked and provides **Check again**.
 An inactive extension with matching versions can still be configured.
+Both entry points select their shipped schema explicitly, so stale Shell schema
+metadata cannot prevent the version-guard screen from opening after an update.
 Pending file dialogs are cancelled when editing is blocked or the window closes.
 Import/export recheck the versions immediately before writing, so a late dialog
 completion cannot bypass the guard or replace a file after cancellation.
@@ -281,9 +289,18 @@ outstanding requests. Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
 GitHub CI runs on the explicit `ubuntu-26.04` image and checks GNOME Shell 50
-before native tests. Required checks include quality/coverage, six negative
+before native tests. Required checks include quality/coverage, negative
 controls, GTK/headless GNOME, secret scanning, licenses,
-moderate-or-higher npm vulnerabilities, and CodeQL for TypeScript and Actions.
+moderate-or-higher npm vulnerabilities, CodeQL for TypeScript and Actions, and
+Shexli. The Shexli gate parses JSON rather than trusting the scanner's exit code:
+errors, warnings and manual-review findings all block the build. Missing tools,
+scanner errors or diagnostics, malformed/inconsistent reports and incomplete file inventories
+also block it. The report's input, file counts and GNOME targets must match the
+actual ZIP. Controlled fixtures verify rejection of schema violations,
+synchronous Shell IO, unavailable/failing scanners and malformed/partial reports.
+The quality job scans the final ZIP again before uploading release assets; the
+release workflow publishes that same artifact. Reports are retained in the
+`shexli-results` Actions artifact.
 Required scanner failures block CI. SCANOSS runs locally before a release,
 separately from GitHub CI; no PR, scheduled or release job contacts its API.
 See [SECURITY.md](SECURITY.md) and [the source review](security/PROVENANCE.md).

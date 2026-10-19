@@ -14,6 +14,7 @@ import { UUID, VERSION } from '../src/shared/release.js';
 
 interface TestExtension {
   readonly dir: Gio.File;
+  readonly metadata: Record<string, unknown>;
   enable(): Promise<void>;
   disable(): void;
   getSettings(): Gio.Settings;
@@ -125,6 +126,7 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   }
   checked.push('Three enable/disable cycles without duplicate handlers');
   await cancelledStartupCheck(extension, checked);
+  await cachedSchemaCheck(extension, checked);
   await competingExtension(extension, checked);
   await shortcutTakeover(extension, checked);
   await capsConflictCheck(extension, checked);
@@ -148,6 +150,22 @@ async function cancelledStartupCheck(extension: TestExtension, checked: string[]
     'Cancelled startup preserves settings',
   );
   checked.push('Disable cancels pending metadata IO before acquiring resources');
+}
+
+async function cachedSchemaCheck(extension: TestExtension, checked: string[]): Promise<void> {
+  const schema = extension.metadata['settings-schema'];
+  extension.metadata['settings-schema'] = 'guru.bug.k-switch';
+  try {
+    await extension.enable();
+    check(
+      (await shellVersion(UUID, new Gio.Cancellable())) === VERSION,
+      'Cached schema metadata must not prevent the current runtime from starting',
+    );
+  } finally {
+    extension.disable();
+    extension.metadata['settings-schema'] = schema;
+  }
+  checked.push('Current runtime uses its shipped schema despite stale Shell metadata');
 }
 
 async function capsConflictCheck(extension: TestExtension, checked: string[]): Promise<void> {

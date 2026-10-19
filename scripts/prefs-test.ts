@@ -35,6 +35,8 @@ try {
         GDK_BACKEND: 'x11',
         GSK_RENDERER: 'cairo',
         GIO_USE_VFS: 'local',
+        GI_TYPELIB_PATH: '/usr/lib/gnome-shell/girepository-1.0',
+        LD_LIBRARY_PATH: '/usr/lib/gnome-shell',
         GTK_A11Y: 'none',
         GTK_USE_PORTAL: '0',
         G_DEBUG: 'fatal-criticals',

@@ -8,7 +8,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { requestPreferences } from './shared/preferences-request.js';
 import { Session } from './runtime/session.js';
 import { installedVersion } from './shared/shell-version.js';
-import { VERSION } from './shared/release.js';
+import { SCHEMA_ID, VERSION } from './shared/release.js';
 
 export default class KSwitch extends Extension {
   #session: Session | null = null;
@@ -28,7 +28,7 @@ export default class KSwitch extends Extension {
           'K-switch code changed on disk. Log out and sign in again before enabling.',
         );
       }
-      const session = new Session(this.getSettings(), () => {
+      const session = new Session(this.getSettings(SCHEMA_ID), () => {
         requestPreferences(this.uuid, request, (error) => {
           Main.notifyError('K-switch: Cannot open settings', String(error));
         });

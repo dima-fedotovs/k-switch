@@ -5,7 +5,9 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { linterOptions: { noInlineConfig: true, reportUnusedDisableDirectives: 'error' } },
-  { ignores: ['node_modules/**', '.build/**', 'dist/**', 'artifacts/**', 'coverage/**'] },
+  {
+    ignores: ['node_modules/**', '.venv/**', '.build/**', 'dist/**', 'artifacts/**', 'coverage/**'],
+  },
   js.configs.recommended,
   {
     files: ['**/*.js'],

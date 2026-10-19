@@ -40,6 +40,9 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   in a managed sandbox. Never test by modifying the working desktop implicitly.
 - Do not weaken strict typing, lint rules, formatting or coverage thresholds.
   Do not add suppression comments or speculative compatibility fallbacks.
+- Shexli must analyze the actual release ZIP with hash-locked dependencies.
+  Reject all findings, scanner failures and incomplete/inconsistent JSON reports;
+  the scanner's zero exit code alone is not success. Preserve the negative controls.
 - Update the README status for unfinished work. Keep commits scoped and tested.
 
 - Publish only to GitHub. Tags must pass the complete CI gate before releases.
