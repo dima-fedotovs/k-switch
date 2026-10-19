@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { getShortcut, parseConfiguration, type Configuration } from './config.js';
 import { type GroupConfiguration, type GroupEntry, type LayoutGroup } from './groups.js';
+import { restoreGroupNames, validateGroupNames } from './group-names.js';
 
 function record(value: unknown, fields: string): Record<string, unknown> {
   if (
@@ -63,7 +64,7 @@ function group(value: unknown, legacy: boolean): LayoutGroup {
   }
   return {
     id,
-    name: text(item.name),
+    name: text(item.name).trim(),
     longName: legacy ? '' : optionalText(item.longName),
     skip: boolean(item.skip),
     entries: unique(list(item.entries, entry), (value) => value.source),
@@ -104,7 +105,7 @@ export function initialConfiguration(
 }
 
 function optionalText(value: unknown): string {
-  return value === '' ? '' : text(value);
+  return value === '' ? '' : text(value).trim();
 }
 
 function shortcutText(value: unknown): string {
@@ -149,10 +150,21 @@ function parseVersion(value: unknown): GroupConfiguration {
   };
 }
 
-export function parseGroupConfiguration(json: string): GroupConfiguration {
+function parse(json: string, restoreNames: boolean): GroupConfiguration {
   const value: unknown = JSON.parse(json);
-  if (typeof value === 'object' && value !== null && 'version' in value && value.version === 1) {
-    return migrate(parseConfiguration(json));
-  }
-  return parseVersion(value);
+  const configuration =
+    typeof value === 'object' && value !== null && 'version' in value && value.version === 1
+      ? migrate(parseConfiguration(json))
+      : parseVersion(value);
+  const groups = restoreNames ? restoreGroupNames(configuration.groups) : configuration.groups;
+  validateGroupNames(groups);
+  return { ...configuration, groups };
+}
+
+export function parseGroupConfiguration(json: string): GroupConfiguration {
+  return parse(json, false);
+}
+
+export function parseStoredGroupConfiguration(json: string): GroupConfiguration {
+  return parse(json, true);
 }

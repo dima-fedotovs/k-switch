@@ -2,6 +2,7 @@
 import GLib from 'gi://GLib';
 import KSwitch from '../src/extension.js';
 import { runShellChecks } from './shell-checks.js';
+import { runFreshSetupChecks } from './fresh-setup-checks.js';
 
 export default class TestKSwitch extends KSwitch {
   #timer: number | null = null;
@@ -15,7 +16,11 @@ export default class TestKSwitch extends KSwitch {
     this.#hasStarted = true;
     this.#timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
       this.#timer = null;
-      void runShellChecks(this).then(
+      const checks =
+        GLib.getenv('K_SWITCH_FRESH_SETUP') === '1'
+          ? runFreshSetupChecks(this.getSettings())
+          : runShellChecks(this);
+      void checks.then(
         (checks) => {
           report({ passed: true, checks });
         },

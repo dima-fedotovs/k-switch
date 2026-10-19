@@ -6,6 +6,8 @@ import { UUID, VERSION } from '../shared/release.js';
 import { installedVersion, shellVersion } from '../shared/shell-version.js';
 import { buildPreferences } from './window.js';
 
+class VersionMismatch extends Error {}
+
 class SessionGuard {
   readonly #window: Adw.PreferencesWindow;
   readonly #settings: Gio.Settings;
@@ -73,30 +75,52 @@ class SessionGuard {
       'Settings remain unavailable until the version check completes.',
     );
     try {
-      const installed = installedVersion(this.#file);
-      const running = await shellVersion(UUID, request);
+      await this.#verify(request);
       if (request.is_cancelled()) {
-        return;
-      }
-      if (running !== VERSION || installed !== VERSION) {
-        this.#lock(
-          'Log out and sign in again',
-          `GNOME Shell: ${running}. Preferences: ${VERSION}. Installed: ${installed}. ` +
-            'The versions do not match. Start a new session before editing settings. Saved groups are preserved.',
-        );
         return;
       }
       this.#window.remove(this.#page);
       this.#added = false;
-      this.#dispose = buildPreferences(this.#window, this.#settings);
+      this.#dispose = buildPreferences(this.#window, this.#settings, () => this.#access(request));
     } catch (error) {
       if (!request.is_cancelled()) {
-        this.#lock(
-          'Cannot verify GNOME Shell version',
-          `${String(error)} Settings have not been changed. Try checking again.`,
-        );
+        this.#failure(error);
       }
     }
+  }
+
+  async #verify(request: Gio.Cancellable): Promise<void> {
+    const running = await shellVersion(UUID, request);
+    const installed = installedVersion(this.#file);
+    if (running !== VERSION || installed !== VERSION) {
+      throw new VersionMismatch(
+        `GNOME Shell: ${running}. Preferences: ${VERSION}. Installed: ${installed}. ` +
+          'The versions do not match. Start a new session before editing settings. Saved groups are preserved.',
+      );
+    }
+  }
+
+  async #access(request: Gio.Cancellable): Promise<void> {
+    try {
+      await this.#verify(request);
+    } catch (error) {
+      if (!request.is_cancelled()) {
+        this.#failure(error);
+      }
+      throw error;
+    }
+  }
+
+  #failure(error: unknown): void {
+    this.#request.cancel();
+    this.#lock(
+      error instanceof VersionMismatch
+        ? 'Log out and sign in again'
+        : 'Cannot verify GNOME Shell version',
+      error instanceof VersionMismatch
+        ? error.message
+        : `${String(error)} Settings have not been changed. Try checking again.`,
+    );
   }
 
   #lock(title: string, description: string): void {

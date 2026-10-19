@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gio from 'gi://Gio';
-import { initialConfiguration, migrate, parseGroupConfiguration } from '../core/group-config.js';
+import {
+  initialConfiguration,
+  parseGroupConfiguration,
+  parseStoredGroupConfiguration,
+} from '../core/group-config.js';
 import { decodeSources } from '../core/config.js';
 import { reconcile, type GroupConfiguration } from '../core/groups.js';
 
@@ -11,24 +15,20 @@ export function configuredSources(desktop: Gio.Settings): string[] {
 export function readConfiguration(settings: Gio.Settings): GroupConfiguration {
   const stored = settings.get_string('configuration');
   if (stored !== '') {
-    return parseGroupConfiguration(stored);
+    return parseStoredGroupConfiguration(stored);
   }
-  if (
-    settings.get_user_value('first-source') === null &&
-    settings.get_user_value('second-source') === null
-  ) {
-    const desktop = new Gio.Settings({
-      schema_id: 'org.gnome.desktop.input-sources',
-      backend: settings.backend,
-    });
-    return initialConfiguration(configuredSources(desktop), settings.get_string('shortcut'));
-  }
-  return migrate({
-    version: 1,
-    firstSource: settings.get_string('first-source'),
-    secondSource: settings.get_string('second-source'),
-    shortcut: settings.get_string('shortcut'),
+  const legacy = ['first-source', 'second-source'].flatMap((key) => {
+    const source = settings.get_user_value(key)?.get_string()[0] ?? '';
+    return source === '' ? [] : [source];
   });
+  const desktop = new Gio.Settings({
+    schema_id: 'org.gnome.desktop.input-sources',
+    backend: settings.backend,
+  });
+  return initialConfiguration(
+    legacy.length > 0 ? legacy : configuredSources(desktop),
+    settings.get_string('shortcut'),
+  );
 }
 
 export function writeConfiguration(

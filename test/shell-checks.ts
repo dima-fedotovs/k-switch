@@ -13,6 +13,7 @@ import { shellVersion } from '../src/shared/shell-version.js';
 import { UUID, VERSION } from '../src/shared/release.js';
 
 interface TestExtension {
+  readonly dir: Gio.File;
   enable(): void;
   disable(): void;
   getSettings(): Gio.Settings;
@@ -124,7 +125,130 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   }
   checked.push('Three enable/disable cycles without duplicate handlers');
   await competingExtension(extension, checked);
+  await shortcutTakeover(extension, checked);
+  capsConflictCheck(extension, checked);
+  cachedRuntimeCheck(extension, checked);
   return checked;
+}
+
+function capsConflictCheck(extension: TestExtension, checked: string[]): void {
+  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
+  const settings = extension.getSettings();
+  const options = desktop.get_strv('xkb-options');
+  const configuration = readConfiguration(settings);
+  const conflict = 'ctrl:grouptoggle_capscontrol';
+  try {
+    writeConfiguration(settings, { ...configuration, shortcut: 'caps' });
+    desktop.set_strv('xkb-options', [conflict]);
+    let rejected = false;
+    try {
+      extension.enable();
+    } catch (error) {
+      rejected = String(error).includes(conflict);
+    }
+    check(rejected, 'The Caps-to-Ctrl group toggle must reject startup');
+    check(
+      desktop.get_strv('xkb-options').join(',') === conflict,
+      'Rejected startup preserves the conflicting user option',
+    );
+    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup leaves no indicator');
+  } finally {
+    extension.disable();
+    desktop.set_strv('xkb-options', options);
+    writeConfiguration(settings, configuration);
+  }
+  checked.push('Caps-to-Ctrl group-toggle conflict rejects startup and releases resources');
+}
+
+function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
+  const settings = extension.getSettings();
+  const saved = settings.get_string('configuration');
+  const file = extension.dir.get_child('metadata.json');
+  const [, bytes] = file.load_contents(null);
+  try {
+    file.replace_contents(
+      new TextEncoder().encode(JSON.stringify({ 'version-name': '99.0.0' })),
+      null,
+      false,
+      Gio.FileCreateFlags.REPLACE_DESTINATION,
+      null,
+    );
+    let rejected = false;
+    try {
+      extension.enable();
+    } catch (error) {
+      rejected = String(error).includes('Log out and sign in again');
+    }
+    check(rejected, 'Cached runtime refuses changed on-disk code before starting');
+    check(
+      settings.get_string('configuration') === saved,
+      'Rejected startup preserves configuration',
+    );
+    check(Main.panel.statusArea['k-switch'] === undefined, 'Rejected startup creates no indicator');
+  } finally {
+    file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+    extension.disable();
+  }
+  checked.push(
+    'Cached runtime refuses mismatched installed versions without touching configuration',
+  );
+}
+
+async function shortcutTakeover(extension: TestExtension, checked: string[]): Promise<void> {
+  extension.enable();
+  const settings = extension.getSettings();
+  const original = configureGroups(settings);
+  writeConfiguration(settings, {
+    ...readConfiguration(settings),
+    groups: readConfiguration(settings)
+      .groups.filter((group) => ['primary', 'latvian', 'reverse'].includes(group.id))
+      .map((group) => ({ ...group, skip: false })),
+  });
+  await settle();
+  await selectGroup('Primary');
+  const parent = new Gio.Settings({ schema_id: 'org.gnome.settings-daemon.plugins.media-keys' });
+  const path = parent
+    .get_strv('custom-keybindings')
+    .find((item) => item.endsWith('k-switch-next/'));
+  if (path === undefined) {
+    throw new Error('Missing system action before takeover');
+  }
+  const next = new Gio.Settings({
+    schema_id: 'org.gnome.settings-daemon.plugins.media-keys.custom-keybinding',
+    path,
+  });
+  next.set_string('command', 'true');
+  await settle();
+  writeConfiguration(settings, { ...readConfiguration(settings), groupShortcut: '<Super><Alt>p' });
+  await settle();
+  const seat = Shell.Global.get().get_stage().get_context().get_backend().get_default_seat();
+  const keyboard = seat.create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+  await pressKeys(keyboard, [125, 56, 25]);
+  check(
+    settings.get_string('active-group') === 'latvian',
+    'Reassignment works through local fallback',
+  );
+  check(next.get_string('command') === 'true', 'Fallback preserves the repurposed command');
+  await pressKeys(keyboard, [125, 56, 48]);
+  await settle();
+  await settle();
+  check(
+    settings.get_string('active-group') === 'primary',
+    `Previous shortcut survives takeover: group=${settings.get_string('active-group')}, ` +
+      `binding=${readConfiguration(settings).previousGroupShortcut}, ` +
+      `paths=${parent.get_strv('custom-keybindings').join(',')}`,
+  );
+  extension.disable();
+  check(
+    parent.get_strv('custom-keybindings').includes(path),
+    'Disable retains the user-owned path',
+  );
+  next.reset('command');
+  parent.set_strv('custom-keybindings', []);
+  writeConfiguration(settings, original);
+  checked.push(
+    'Live system action takeover enables working local shortcuts and preserves user ownership',
+  );
 }
 
 function indicator(): PanelMenu.Button {

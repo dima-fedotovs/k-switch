@@ -11,6 +11,10 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   Caps resumes that group. The skip flag affects only next/previous group cycling.
 - Keep short panel names and optional long menu names distinct. The panel shows
   the group alone by default; the source label is optional.
+- Short names and nonempty long names must each be unique after trimming,
+  case-insensitive comparison and Unicode composition normalization. Reject duplicate edits/imports;
+  repair stored duplicates with suffixes while preserving IDs, order and membership.
+  Display names literally and use stable IDs for control/focus identity.
 - Integrate next/previous actions with GNOME custom shortcuts bidirectionally;
   own only our paths and preserve unrelated or repurposed shortcuts.
 - Support all configured GNOME sources, including IBus. Reconcile against saved
@@ -18,9 +22,13 @@ Read README.md and CONTRIBUTING.md before modifying this project.
 - Keep Caps Lock as the default within-group shortcut and Shift+Caps Lock for Caps.
 - Seed fresh membership from the first two saved GNOME sources, never fixed
   languages. Preserve explicit legacy overrides when migrating.
+  Legacy source keys must have empty defaults. Native setup checks must also
+  start without US/Russian sources and derive expectations from configured IDs.
 - Check Shell, preferences-code and on-disk versions before preferences can
   synchronize or write settings. Mismatches must preserve configuration and block
   editing until a matching session is available.
+  Active Shell code must report its own version; metadata is not execution proof.
+  Cancel pending transfers on lock/close and recheck versions before writing.
 - Keep menu items alive during group activation; label/visibility changes must
   not destroy the active gesture's actor.
 - Target GNOME Shell 50. Verify version-specific APIs against its actual source.
@@ -34,6 +42,8 @@ Read README.md and CONTRIBUTING.md before modifying this project.
 
 - Publish only to GitHub. Tags must pass the complete CI gate before releases.
   Do not publish to EGO, replace published assets, or push archive/pre-squash.
+  Keep release tags immutable; verify their remote peeled commit against the
+  immutable workflow event SHA again immediately before publishing assets.
 - Source match approvals must bind the exact source SHA256 and match fields.
   Scanner errors, partial reports and unreviewed matches fail closed.
   Run SCANOSS locally before tagging; never invoke it in GitHub Actions. Hosted

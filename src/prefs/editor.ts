@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk?version=4.0';
+import GLib from 'gi://GLib';
 import type { GroupConfiguration, GroupEntry, LayoutGroup } from '../core/groups.js';
 import { control } from './focus.js';
 import { sourceLabel } from './choices.js';
@@ -8,7 +9,7 @@ import { action, dragHandle, dropTarget, moved } from './reorder.js';
 
 export interface EditorContext {
   readonly configuration: GroupConfiguration;
-  readonly save: (value: GroupConfiguration) => void;
+  readonly save: (value: GroupConfiguration) => boolean;
   readonly bind: (refresh: () => void) => void;
 }
 
@@ -16,9 +17,9 @@ function update(
   context: EditorContext,
   id: string,
   transform: (group: LayoutGroup) => LayoutGroup,
-): void {
+): boolean {
   const configuration = context.configuration;
-  context.save({
+  return context.save({
     ...configuration,
     groups: configuration.groups.map((group) => (group.id === id ? transform(group) : group)),
   });
@@ -52,23 +53,12 @@ function moveGroup(context: EditorContext, from: number, to: number): void {
 
 function groupHeader(context: EditorContext, group: LayoutGroup): Adw.EntryRow {
   const index = context.configuration.groups.findIndex((item) => item.id === group.id);
-  const row = new Adw.EntryRow({
-    title: 'Group short name',
-    text: group.name,
-    show_apply_button: true,
-  });
-  control(row, `Name of group ${group.id}`);
-  row.connect('apply', () => {
-    const name = row.text.trim();
-    if (name !== '' && !Array.from(name).some((character) => character < ' ')) {
-      update(context, group.id, (current) => ({ ...current, name }));
-    }
-  });
+  const row = nameRow(context, group, 'name');
   row.add_prefix(dragHandle(`group:${group.id}`, 'Drag to reorder groups'));
-  const up = action('go-up-symbolic', `Move group ${group.name} up`, () => {
+  const up = groupAction(group, 'up', 'go-up-symbolic', () => {
     moveGroup(context, index, index - 1);
   });
-  const down = action('go-down-symbolic', `Move group ${group.name} down`, () => {
+  const down = groupAction(group, 'down', 'go-down-symbolic', () => {
     moveGroup(context, index, index + 1);
   });
   up.sensitive = index > 0;
@@ -76,7 +66,7 @@ function groupHeader(context: EditorContext, group: LayoutGroup): Adw.EntryRow {
   row.add_suffix(up);
   row.add_suffix(down);
   row.add_suffix(
-    action('user-trash-symbolic', `Delete group ${group.name}`, () => {
+    groupAction(group, 'delete', 'user-trash-symbolic', () => {
       context.save({
         ...context.configuration,
         groups: context.configuration.groups.filter((item) => item.id !== group.id),
@@ -92,6 +82,17 @@ function groupHeader(context: EditorContext, group: LayoutGroup): Adw.EntryRow {
     return true;
   });
   return row;
+}
+
+function groupAction(
+  group: LayoutGroup,
+  kind: 'up' | 'down' | 'delete',
+  icon: string,
+  callback: () => void,
+): Gtk.Button {
+  const label =
+    kind === 'delete' ? `Delete group ${group.name}` : `Move group ${group.name} ${kind}`;
+  return action(icon, label, callback, JSON.stringify(['group', group.id, kind]));
 }
 
 function membership(context: EditorContext, id: string, entry: GroupEntry): Gtk.CheckButton {
@@ -136,12 +137,22 @@ function sourceRow(context: EditorContext, group: LayoutGroup, index: number): A
     }));
   };
   row.add_prefix(dragHandle(`source:${group.id}:${entry.source}`, 'Drag to reorder layouts'));
-  const up = action('go-up-symbolic', `Move ${entry.source} up in ${group.name}`, () => {
-    move(index, index - 1);
-  });
-  const down = action('go-down-symbolic', `Move ${entry.source} down in ${group.name}`, () => {
-    move(index, index + 1);
-  });
+  const up = action(
+    'go-up-symbolic',
+    `Move ${entry.source} up in ${group.name}`,
+    () => {
+      move(index, index - 1);
+    },
+    JSON.stringify(['source', group.id, entry.source, 'up']),
+  );
+  const down = action(
+    'go-down-symbolic',
+    `Move ${entry.source} down in ${group.name}`,
+    () => {
+      move(index, index + 1);
+    },
+    JSON.stringify(['source', group.id, entry.source, 'down']),
+  );
   up.sensitive = index > 0;
   down.sensitive = index < group.entries.length - 1;
   row.add_suffix(up);
@@ -157,26 +168,35 @@ function sourceRow(context: EditorContext, group: LayoutGroup, index: number): A
   return row;
 }
 
-function longNameRow(context: EditorContext, group: LayoutGroup): Adw.EntryRow {
+function nameRow(
+  context: EditorContext,
+  group: LayoutGroup,
+  field: 'name' | 'longName',
+): Adw.EntryRow {
   const row = new Adw.EntryRow({
-    title: 'Long name (optional)',
-    text: group.longName,
+    title: field === 'name' ? 'Group short name' : 'Long name (optional)',
+    text: group[field],
     show_apply_button: true,
   });
-  control(row, `Long name of group ${group.id}`);
+  control(row, `${field === 'name' ? 'Name' : 'Long name'} of group ${group.id}`);
   row.connect('apply', () => {
-    const longName = row.text.trim();
-    if (!Array.from(longName).some((character) => character < ' ')) {
-      update(context, group.id, (current) => ({ ...current, longName }));
+    const saved = update(context, group.id, (current) => ({
+      ...current,
+      [field]: row.text.trim(),
+    }));
+    if (saved) {
+      row.remove_css_class('error');
+    } else {
+      row.add_css_class('error');
     }
   });
   return row;
 }
 
 export function groupEditor(context: EditorContext, group: LayoutGroup): Adw.PreferencesGroup {
-  const section = new Adw.PreferencesGroup({ title: group.name });
+  const section = new Adw.PreferencesGroup({ title: GLib.markup_escape_text(group.name, -1) });
   section.add(groupHeader(context, group));
-  section.add(longNameRow(context, group));
+  section.add(nameRow(context, group, 'longName'));
   section.add(
     skipRow(context, group.id, group.skip, (skip) => {
       update(context, group.id, (current) => ({ ...current, skip }));

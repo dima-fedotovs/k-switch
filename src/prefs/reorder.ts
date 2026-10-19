@@ -13,14 +13,18 @@ export function moved<T>(items: readonly T[], from: number, to: number): readonl
   return result;
 }
 
-export function action(icon: string, label: string, callback: () => void): Gtk.Button {
+export function action(
+  icon: string,
+  label: string,
+  callback: () => void,
+  identity = label,
+): Gtk.Button {
   const button = new Gtk.Button({
     icon_name: icon,
     tooltip_text: label,
     valign: Gtk.Align.CENTER,
-    name: label,
   });
-  control(button, label);
+  control(button, identity);
   button.connect('clicked', callback);
   return button;
 }

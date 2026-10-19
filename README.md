@@ -19,6 +19,11 @@ groups** switch. A source can belong to several groups. Empty groups are allowed
 while editing. The menu uses the long name when provided, otherwise the short name.
 There is no automatically generated All layouts group.
 
+Short names and nonempty long names must each be unique, ignoring case,
+surrounding spaces and Unicode composition. Empty long names can repeat.
+Names containing `&`, `<` or `>` are displayed literally. Keyboard focus follows
+stable group/source IDs when controls are rebuilt, including after a rename.
+
 - Within a group, cycle through checked, currently available sources in order.
   From a source outside that group, select its first available member. A single
   member stays selected without reactivating its input engine.
@@ -81,11 +86,16 @@ system schemas are unavailable, locked, or the reserved path belongs to another
 command, a notification explains that extension-local bindings are used instead;
 those fallback bindings do not appear in GNOME Settings. An accelerator already
 owned by another component may be unavailable; choose another combination.
+Losing ownership while enabled also switches to local bindings and reports the
+change. Only the affected action changes transport; other system actions keep
+their existing keyboard grabs.
+Removing both system actions clears both assignments in one update.
 
 While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group
-options unless independently changed. Caps remaps and the competing Switch Two
-Layouts extension are detected; do not run both switchers together.
+options unless independently changed. Caps remaps, including the combined
+Caps-to-Ctrl/Left-Ctrl group toggle, are rejected before enabling a Caps preset.
+The competing Switch Two Layouts extension is detected; do not run both switchers together.
 
 ## Configuration and migration
 
@@ -94,6 +104,8 @@ saved input-source order, including IBus. Other sources start unchecked. With
 one source only that source is enabled; an empty list creates an empty group.
 There is no fixed US/RU default. Explicit legacy pair settings are migrated
 instead; existing group configurations are preserved.
+Legacy source keys have empty defaults. Only their explicitly saved, nonempty
+values are migrated; an unset legacy field never inserts a language.
 
 Existing pair preferences migrate to **Primary**, preserving order and the
 within-group shortcut. Version 2 group configurations preserve their group IDs,
@@ -108,6 +120,9 @@ duplicate identifiers and unsupported versions are rejected. Sources absent on
 the target computer are removed with a message; import never changes GNOME input
 sources. Configuration files are UTF-8 JSON with a 16 KiB size limit. Oversized
 exports are rejected before replacing a file.
+Duplicate names in imports are rejected before writing. Previously saved duplicate
+names receive ` (2)`, ` (3)` suffixes without deleting groups or changing their IDs,
+membership or order. Existing suffixed names are reserved during that repair.
 
 Version 3 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
 and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut`
@@ -148,6 +163,8 @@ a managed sandbox. They use private D-Bus sessions and temporary XDG state and
 never install into or configure the working desktop. Both native fixtures select
 local GIO VFS; the Shell fixture checks its local URI capabilities before
 behavioral tests and unmounts its private document portal before D-Bus shutdown.
+The launcher supplies all temporary XDG paths before starting D-Bus. The session
+script refuses mismatched paths before running any desktop settings command.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |
@@ -199,13 +216,19 @@ gnome-extensions prefs k-switch@bug.guru
 To return to the original setup, disable K-switch and re-enable the previous
 extension. Repository checks never install or enable it in the working desktop.
 
-Preferences verify GNOME Shell's cached `GetExtensionInfo` version against their
-own code version and the installed `metadata.json` **before loading or migrating
-configuration**. If they differ, editing and import/export are unavailable: a
+Preferences query a version method provided by the active runtime code, rather
+than trusting Shell's cached metadata. For an inactive extension they use Shell's
+metadata; enabling cached code also checks the installed version before opening
+settings or acquiring resources. These versions must match the preferences code
+and installed `metadata.json` **before loading or migrating configuration**.
+If they differ, editing and import/export are unavailable: a
 status screen lists all three versions and asks you to log out and sign in again.
 Saved groups are preserved. Updates while the window is open also trigger this
 check. A failed version query keeps editing blocked and provides **Check again**.
 An inactive extension with matching versions can still be configured.
+Pending file dialogs are cancelled when editing is blocked or the window closes.
+Import/export recheck the versions immediately before writing, so a late dialog
+completion cannot bypass the guard or replace a file after cancellation.
 
 Seeing **All layouts** only in the panel, or errors mentioning
 `allSkip,groupShortcut,groups,shortcut,showIndicator,version`, means the Shell is
@@ -221,7 +244,7 @@ it cannot retrofit itself into a window already executing older code.
 K-switch is distributed through [GitHub](https://github.com/dima-fedotovs/k-switch).
 Versions below 1.0 are pre-releases; check the repository's Releases page for
 published artifacts. No EGO publication is configured.
-All 26 unit tests pass; group policy, migration and configuration validation have
+Unit tests cover group policy, migration and configuration validation with
 100% core coverage in all four metrics.
 Native checks exercise sticky unassigned sources, group overlap/order, separate
 short/long names, optional source display, indicator selection/visibility, real
@@ -234,8 +257,12 @@ three-group scrolling regression with focused/unfocused controls, rapid checkbox
 edits and external settings updates.
 The preferences guard is exercised against a private D-Bus Shell service,
 including an old runtime, matching inactive runtime, updates with the window
-open, missing version information and retry. Fresh GSettings checks cover zero,
+open, metadata/runtime disagreement, missing runtime APIs and retry. Controlled
+file-dialog completions exercise cancellation on update/close, version changes
+before writing, and successful import/export. Fresh GSettings checks cover zero,
 one, two and three configured sources, IBus-first ordering and legacy overrides.
+A second private Shell starts without US or Russian sources and verifies fresh
+membership and real Caps cycling directly against its configured source order.
 Indicator tests toggle both options repeatedly with the menu open and ensure
 activating a group retains its menu item until event handling completes.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
@@ -292,6 +319,11 @@ A tag such as `v0.4.0` reruns the complete hosted gate. The tag must match all p
 version declarations and refer to a commit from main. Versions below 1.0 and
 versions with a prerelease suffix are marked as pre-releases. Failed checks do
 not publish a release. A repeated run cannot replace an existing release.
+The checkout and remote tag's peeled commit must equal the commit resolved from
+the immutable workflow event SHA, including annotated tags. The remote reference is checked again just
+before publishing; moved, deleted and off-main tags stop the release. The
+repository also protects `v*` tags against updates and deletion without bypasses;
+the policy is recorded in `.github/release-tag-ruleset.json` for maintainers.
 
 The verified ZIP, SHA256SUMS and CycloneDX SBOM are attached to the release.
 The SBOM inventories npm build/development dependencies, not code bundled into

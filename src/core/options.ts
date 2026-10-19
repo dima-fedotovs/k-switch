@@ -30,6 +30,7 @@ export function findCapsConflict(
       option.startsWith('caps:') ||
       option === 'ctrl:nocaps' ||
       option === 'ctrl:swapcaps' ||
+      option === 'ctrl:grouptoggle_capscontrol' ||
       option === 'ctrl:hyper_capscontrol' ||
       option.startsWith('compose:caps') ||
       /^lv[35]:caps/.test(option),
