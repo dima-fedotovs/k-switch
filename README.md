@@ -193,9 +193,19 @@ gnome-extensions install --force artifacts/k-switch@bug.guru.shell-extension.zip
 ```
 
 Version 0.4.0 renames Layout Pair to **K-switch** and uses the domain `bug.guru`.
-The UUID is `k-switch@bug.guru`, GSettings schema is `guru.bug.k-switch` with path
-`/guru/bug/k-switch/`, and D-Bus action interface is `guru.bug.KSwitch` at
+The UUID is `k-switch@bug.guru`. Starting with 0.4.1, the GSettings schema is
+`org.gnome.shell.extensions.guru.bug.k-switch` with path
+`/org/gnome/shell/extensions/guru/bug/k-switch/`, following GNOME's extension
+review requirements. The D-Bus action interface remains `guru.bug.KSwitch` at
 `/guru/bug/KSwitch`.
+
+**Updating from 0.4.0:** export settings using the old preferences window before
+replacing the extension. Close preferences, disable K-switch, install the new ZIP,
+then log out and sign in again. Open the new preferences and import that file.
+The old `/guru/bug/k-switch/` settings are left untouched and are not migrated
+automatically. Import preserves groups and shortcuts; the active group is local
+state and is not part of an export. A fresh installation still enables the first
+two configured GNOME input sources.
 
 This is a separate extension identity with independent settings. It does not read
 or modify the old Layout Pair namespace, migrate its settings automatically, or
@@ -218,8 +228,9 @@ extension. Repository checks never install or enable it in the working desktop.
 
 Preferences query a version method provided by the active runtime code, rather
 than trusting Shell's cached metadata. For an inactive extension they use Shell's
-metadata; enabling cached code also checks the installed version before opening
-settings or acquiring resources. These versions must match the preferences code
+metadata; enabling cached code also checks the installed version asynchronously
+before opening settings or acquiring resources. Disabling cancels a pending
+version read before startup can acquire resources. These versions must match the preferences code
 and installed `metadata.json` **before loading or migrating configuration**.
 If they differ, editing and import/export are unavailable: a
 status screen lists all three versions and asks you to log out and sign in again.

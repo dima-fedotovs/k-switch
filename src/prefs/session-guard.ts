@@ -91,7 +91,7 @@ class SessionGuard {
 
   async #verify(request: Gio.Cancellable): Promise<void> {
     const running = await shellVersion(UUID, request);
-    const installed = installedVersion(this.#file);
+    const installed = await installedVersion(this.#file, request);
     if (running !== VERSION || installed !== VERSION) {
       throw new VersionMismatch(
         `GNOME Shell: ${running}. Preferences: ${VERSION}. Installed: ${installed}. ` +

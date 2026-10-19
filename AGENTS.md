@@ -2,9 +2,11 @@
 
 Read README.md and CONTRIBUTING.md before modifying this project.
 
-- Use `k-switch@bug.guru`, schema `guru.bug.k-switch`, and D-Bus namespace
+- Use `k-switch@bug.guru`, schema `org.gnome.shell.extensions.guru.bug.k-switch`, and D-Bus namespace
   `guru.bug.KSwitch`. Do not add automatic migration or coordination for the
   former Layout Pair identity; users can transfer configuration through files.
+- The 0.4.0 K-switch schema/path is also transferred through export/import.
+  Do not add automatic migration; document export before replacing that version.
 
 - Preserve overlapping ordered groups and checked membership. There is no system
   group: external sources absent from every group leave the active group sticky.

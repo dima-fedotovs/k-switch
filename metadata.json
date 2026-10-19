@@ -3,7 +3,7 @@
   "name": "K-switch",
   "description": "Organize GNOME input sources into overlapping groups. Caps Lock cycles the active group; next/previous group actions appear in system shortcuts. Choose a compact group indicator with an optional input-source label.",
   "shell-version": ["50"],
-  "settings-schema": "guru.bug.k-switch",
-  "version-name": "0.4.0",
+  "settings-schema": "org.gnome.shell.extensions.guru.bug.k-switch",
+  "version-name": "0.4.1",
   "url": "https://github.com/dima-fedotovs/k-switch"
 }

@@ -201,7 +201,7 @@ async function verifyTransfer(
   await settle();
   const choice = descendants(window).find((widget) => widget instanceof Adw.ComboRow);
   check(choice instanceof Adw.ComboRow && choice.selected === 3, 'Imported shortcut appears');
-  const peer = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+  const peer = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
   writeConfiguration(settings, { ...readConfiguration(settings), shortcut: 'caps' });
   await settle();
   check(readConfiguration(peer).shortcut === 'caps', 'Updates after import reach peers');
@@ -284,7 +284,7 @@ const application = new Adw.Application({
 let failure: unknown = null;
 application.connect('activate', () => {
   application.hold();
-  const settings = new Gio.Settings({ schema_id: 'guru.bug.k-switch' });
+  const settings = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
   const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   desktop.set_value(
     'sources',

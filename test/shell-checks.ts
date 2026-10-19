@@ -14,7 +14,7 @@ import { UUID, VERSION } from '../src/shared/release.js';
 
 interface TestExtension {
   readonly dir: Gio.File;
-  enable(): void;
+  enable(): Promise<void>;
   disable(): void;
   getSettings(): Gio.Settings;
 }
@@ -114,7 +114,7 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
   expectSource('lv+tilde');
   checked.push('Disable restores native handler and previous keyboard options');
   for (let index = 0; index < 3; index += 1) {
-    extension.enable();
+    await extension.enable();
     await settle();
     await selectGroup('Primary');
     await activate('us');
@@ -124,14 +124,33 @@ async function runChecks(extension: TestExtension): Promise<string[]> {
     await settle();
   }
   checked.push('Three enable/disable cycles without duplicate handlers');
+  await cancelledStartupCheck(extension, checked);
   await competingExtension(extension, checked);
   await shortcutTakeover(extension, checked);
-  capsConflictCheck(extension, checked);
-  cachedRuntimeCheck(extension, checked);
+  await capsConflictCheck(extension, checked);
+  await cachedRuntimeCheck(extension, checked);
   return checked;
 }
 
-function capsConflictCheck(extension: TestExtension, checked: string[]): void {
+async function cancelledStartupCheck(extension: TestExtension, checked: string[]): Promise<void> {
+  const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
+  const settings = extension.getSettings();
+  const options = desktop.get_strv('xkb-options').join(',');
+  const configuration = settings.get_string('configuration');
+  const pending = extension.enable();
+  extension.disable();
+  await pending;
+  await settle();
+  check(Main.panel.statusArea['k-switch'] === undefined, 'Cancelled startup creates no indicator');
+  check(desktop.get_strv('xkb-options').join(',') === options, 'Cancelled startup preserves XKB');
+  check(
+    settings.get_string('configuration') === configuration,
+    'Cancelled startup preserves settings',
+  );
+  checked.push('Disable cancels pending metadata IO before acquiring resources');
+}
+
+async function capsConflictCheck(extension: TestExtension, checked: string[]): Promise<void> {
   const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   const settings = extension.getSettings();
   const options = desktop.get_strv('xkb-options');
@@ -142,7 +161,7 @@ function capsConflictCheck(extension: TestExtension, checked: string[]): void {
     desktop.set_strv('xkb-options', [conflict]);
     let rejected = false;
     try {
-      extension.enable();
+      await extension.enable();
     } catch (error) {
       rejected = String(error).includes(conflict);
     }
@@ -160,7 +179,7 @@ function capsConflictCheck(extension: TestExtension, checked: string[]): void {
   checked.push('Caps-to-Ctrl group-toggle conflict rejects startup and releases resources');
 }
 
-function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
+async function cachedRuntimeCheck(extension: TestExtension, checked: string[]): Promise<void> {
   const settings = extension.getSettings();
   const saved = settings.get_string('configuration');
   const file = extension.dir.get_child('metadata.json');
@@ -175,7 +194,7 @@ function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
     );
     let rejected = false;
     try {
-      extension.enable();
+      await extension.enable();
     } catch (error) {
       rejected = String(error).includes('Log out and sign in again');
     }
@@ -195,7 +214,7 @@ function cachedRuntimeCheck(extension: TestExtension, checked: string[]): void {
 }
 
 async function shortcutTakeover(extension: TestExtension, checked: string[]): Promise<void> {
-  extension.enable();
+  await extension.enable();
   const settings = extension.getSettings();
   const original = configureGroups(settings);
   writeConfiguration(settings, {
@@ -640,7 +659,7 @@ async function competingExtension(extension: TestExtension, checked: string[]): 
   const shell = new Gio.Settings({ schema_id: 'org.gnome.shell' });
   const desktop = new Gio.Settings({ schema_id: 'org.gnome.desktop.input-sources' });
   const enabled = shell.get_strv('enabled-extensions');
-  extension.enable();
+  await extension.enable();
   await settle();
   shell.set_strv('enabled-extensions', [...enabled, 'switchtwolayouts@qtmax.dev']);
   await settle();
