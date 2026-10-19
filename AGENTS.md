@@ -11,6 +11,10 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   Caps resumes that group. The skip flag affects only next/previous group cycling.
 - Keep short panel names and optional long menu names distinct. The panel shows
   the group alone by default; the source label is optional.
+- Short names and nonempty long names must each be unique after trimming,
+  case-insensitive comparison and Unicode composition normalization. Reject duplicate edits/imports;
+  repair stored duplicates with suffixes while preserving IDs, order and membership.
+  Display names literally and use stable IDs for control/focus identity.
 - Integrate next/previous actions with GNOME custom shortcuts bidirectionally;
   own only our paths and preserve unrelated or repurposed shortcuts.
 - Support all configured GNOME sources, including IBus. Reconcile against saved

@@ -102,6 +102,48 @@ async function verifySuccessfulTransfers(fixture: Fixture): Promise<void> {
   );
 }
 
+async function verifyDuplicateImport(fixture: Fixture): Promise<void> {
+  const { window, settings, dialogs, file } = fixture;
+  const configuration = readConfiguration(settings);
+  const first = configuration.groups[0];
+  if (first === undefined) {
+    throw new Error('Missing import fixture group');
+  }
+  const existing = contents(file);
+  file.replace_contents(
+    new TextEncoder().encode(
+      JSON.stringify({
+        ...configuration,
+        groups: [
+          ...configuration.groups,
+          { ...first, id: 'duplicate-import', name: first.name.toLowerCase() },
+        ],
+      }),
+    ),
+    null,
+    false,
+    Gio.FileCreateFlags.REPLACE_DESTINATION,
+    null,
+  );
+  try {
+    click(window, 'Import…');
+    dialogs.complete();
+    await settle();
+    check(
+      JSON.stringify(readConfiguration(settings)) === JSON.stringify(configuration),
+      'Duplicate-name import preserves all saved preferences',
+    );
+  } finally {
+    file.replace_contents(
+      new TextEncoder().encode(existing),
+      null,
+      false,
+      Gio.FileCreateFlags.REPLACE_DESTINATION,
+      null,
+    );
+  }
+}
+
 async function verifyClosedTransfer(fixture: Fixture): Promise<void> {
   const { window, dialogs, file } = fixture;
   const existing = contents(file);
@@ -131,6 +173,7 @@ export async function verifyDeferredTransfers(
   try {
     await verifyLockedTransfers(fixture);
     await verifyRuntimeChange(fixture);
+    await verifyDuplicateImport(fixture);
     await verifySuccessfulTransfers(fixture);
     await verifyClosedTransfer(fixture);
     console.warn('Deferred import/export cancellation and version rechecks passed.');

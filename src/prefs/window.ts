@@ -4,6 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import type { GroupConfiguration } from '../core/groups.js';
+import { nextGroupName } from '../core/group-names.js';
 import {
   configuredSources,
   readConfiguration,
@@ -54,7 +55,7 @@ function addGroup(context: EditorContext, desktop: Gio.Settings): Adw.Preference
           ...context.configuration.groups,
           {
             id: GLib.uuid_string_random(),
-            name: `Group ${String(context.configuration.groups.length + 1)}`,
+            name: nextGroupName(context.configuration.groups),
             longName: '',
             skip: false,
             entries: configuredSources(desktop).map((source) => ({ source, enabled: false })),
@@ -159,15 +160,17 @@ class PreferencesEditor {
       get configuration(): GroupConfiguration {
         return readConfiguration(settings);
       },
-      save: (value): void => {
+      save: (value): boolean => {
         if (this.#syncing) {
-          return;
+          return false;
         }
         try {
           writeConfiguration(settings, value);
+          return true;
         } catch (error) {
           this.#error(error);
           this.#queue();
+          return false;
         }
       },
       bind: (refresh): void => {

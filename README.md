@@ -19,6 +19,11 @@ groups** switch. A source can belong to several groups. Empty groups are allowed
 while editing. The menu uses the long name when provided, otherwise the short name.
 There is no automatically generated All layouts group.
 
+Short names and nonempty long names must each be unique, ignoring case,
+surrounding spaces and Unicode composition. Empty long names can repeat.
+Names containing `&`, `<` or `>` are displayed literally. Keyboard focus follows
+stable group/source IDs when controls are rebuilt, including after a rename.
+
 - Within a group, cycle through checked, currently available sources in order.
   From a source outside that group, select its first available member. A single
   member stays selected without reactivating its input engine.
@@ -113,6 +118,9 @@ duplicate identifiers and unsupported versions are rejected. Sources absent on
 the target computer are removed with a message; import never changes GNOME input
 sources. Configuration files are UTF-8 JSON with a 16 KiB size limit. Oversized
 exports are rejected before replacing a file.
+Duplicate names in imports are rejected before writing. Previously saved duplicate
+names receive ` (2)`, ` (3)` suffixes without deleting groups or changing their IDs,
+membership or order. Existing suffixed names are reserved during that repair.
 
 Version 3 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
 and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut`

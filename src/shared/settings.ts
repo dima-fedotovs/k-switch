@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gio from 'gi://Gio';
-import { initialConfiguration, migrate, parseGroupConfiguration } from '../core/group-config.js';
+import {
+  initialConfiguration,
+  migrate,
+  parseGroupConfiguration,
+  parseStoredGroupConfiguration,
+} from '../core/group-config.js';
 import { decodeSources } from '../core/config.js';
 import { reconcile, type GroupConfiguration } from '../core/groups.js';
 
@@ -11,7 +16,7 @@ export function configuredSources(desktop: Gio.Settings): string[] {
 export function readConfiguration(settings: Gio.Settings): GroupConfiguration {
   const stored = settings.get_string('configuration');
   if (stored !== '') {
-    return parseGroupConfiguration(stored);
+    return parseStoredGroupConfiguration(stored);
   }
   if (
     settings.get_user_value('first-source') === null &&

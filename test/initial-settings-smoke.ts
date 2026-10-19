@@ -37,9 +37,46 @@ export function verifyInitialSettings(settings: Gio.Settings, desktop: Gio.Setti
     );
   }
   verifyLegacy(settings, desktop);
+  verifyStoredNames(settings, desktop);
   for (const key of ['configuration', 'first-source', 'second-source', 'shortcut']) {
     settings.reset(key);
   }
+}
+
+function verifyStoredNames(settings: Gio.Settings, desktop: Gio.Settings): void {
+  const configuration = readConfiguration(settings);
+  const first = configuration.groups[0];
+  if (first === undefined) {
+    throw new Error('Missing saved group fixture');
+  }
+  settings.set_string('active-group', 'duplicate');
+  settings.set_string(
+    'configuration',
+    JSON.stringify({
+      ...configuration,
+      groups: [first, { ...first, id: 'duplicate', name: first.name.toLowerCase() }],
+    }),
+  );
+  const repaired = synchronize(settings, desktop);
+  check(
+    repaired.groups.length === 2 &&
+      repaired.groups[1]?.name === `${first.name.toLowerCase()} (2)` &&
+      repaired.groups[1].id === 'duplicate' &&
+      JSON.stringify(repaired.groups[1].entries) === JSON.stringify(first.entries),
+    'Repair preserves group IDs, order and memberships',
+  );
+  check(
+    settings.get_string('active-group') === 'duplicate',
+    'Repair preserves active group identity',
+  );
+  const stored = settings.get_string('configuration');
+  check(stored === JSON.stringify(repaired), 'Repaired names are persisted');
+  synchronize(settings, desktop);
+  check(
+    settings.get_string('configuration') === stored,
+    'Repair is stable across repeated synchronization',
+  );
+  settings.reset('active-group');
 }
 
 function verifyLegacy(settings: Gio.Settings, desktop: Gio.Settings): void {

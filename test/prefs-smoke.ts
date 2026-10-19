@@ -10,6 +10,7 @@ import { verifyScrolling } from './prefs-scroll.js';
 import { validAccelerator } from '../src/prefs/switching.js';
 import { verifySessionGuard } from './session-guard-smoke.js';
 import { verifyPreferencesRequests } from './preferences-request-smoke.js';
+import { verifyGroupNames } from './prefs-names.js';
 
 function check(value: boolean, message: string): void {
   if (!value) {
@@ -74,16 +75,20 @@ async function verify(
     'Checkbox must enable source',
   );
   check(focusName(window) === 'primary:xkb:lv+tilde', 'Checkbox focus survives refreshing');
-  button(window, 'Move xkb:lv+tilde up in Primary').emit('clicked');
+  button(window, JSON.stringify(['source', 'primary', 'xkb:lv+tilde', 'up'])).emit('clicked');
   await settle();
   check(
     readConfiguration(settings).groups[0]?.entries[1]?.source === 'xkb:lv+tilde',
     'Layout reorder must save',
   );
-  button(window, 'Move group Group 2 up').emit('clicked');
+  const added = readConfiguration(settings).groups[1];
+  if (added === undefined) {
+    throw new Error('Missing added group');
+  }
+  button(window, JSON.stringify(['group', added.id, 'up'])).emit('clicked');
   await settle();
   check(readConfiguration(settings).groups[0]?.name === 'Group 2', 'Group reorder must save');
-  button(window, 'Delete group Group 2').emit('clicked');
+  button(window, JSON.stringify(['group', added.id, 'delete'])).emit('clicked');
   await settle();
   check(readConfiguration(settings).groups.length === 1, 'Delete must save');
   check(
@@ -94,6 +99,7 @@ async function verify(
   );
   await verifyDragAndRename(window, settings);
   await verifySources(window, settings, desktop);
+  await verifyGroupNames(window, settings);
 }
 
 async function verifyDragAndRename(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
