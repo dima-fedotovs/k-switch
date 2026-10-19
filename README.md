@@ -172,6 +172,8 @@ behavioral tests and unmounts its private document portal before D-Bus shutdown.
 The launcher supplies all temporary XDG paths before starting D-Bus. The session
 script refuses mismatched paths before running any desktop settings command.
 Native fixtures load the same formatted production runtime checked inside the ZIP.
+Keyboard checks begin in the normal session; overview shortcuts are exercised
+separately, so an unassigned test combination cannot start an application search.
 Results are in `artifacts/`.
 
 | Directory            | Responsibility                                                     |

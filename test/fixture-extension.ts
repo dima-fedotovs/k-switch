@@ -3,9 +3,6 @@ import GLib from 'gi://GLib';
 import KSwitch from '../src/extension.js';
 import { runShellChecks } from './shell-checks.js';
 import { runFreshSetupChecks } from './fresh-setup-checks.js';
-import { traceDisconnections } from './signal-diagnostics.js';
-
-traceDisconnections();
 
 export default class TestKSwitch extends KSwitch {
   #timer: number | null = null;
