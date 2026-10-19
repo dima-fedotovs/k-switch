@@ -16,10 +16,24 @@ chmod 700 "$XDG_RUNTIME_DIR"
 gsettings set org.gnome.desktop.input-sources sources "${K_SWITCH_INITIAL_SOURCES:?Launcher must supply isolated fixture sources}"
 gsettings set org.gnome.desktop.input-sources xkb-options "['compose:ralt','grp:alt_shift_toggle']"
 gsettings set org.gnome.shell enabled-extensions "['k-switch@bug.guru']"
-gnome-shell --headless --wayland --no-x11 --virtual-monitor 1280x900 --mode=user > "$test_root/shell.log" 2>&1 &
+if test "${K_SWITCH_GDB:-0}" = 1; then
+  G_DEBUG=fatal-criticals gdb --batch \
+    -ex 'set pagination off' \
+    -ex 'set disable-randomization off' \
+    -ex 'handle SIGTERM nostop noprint pass' \
+    -ex run -ex 'thread apply all backtrace' \
+    --args gnome-shell --headless --wayland --no-x11 --virtual-monitor 1280x900 --mode=user > "$test_root/shell.log" 2>&1 &
+else
+  gnome-shell --headless --wayland --no-x11 --virtual-monitor 1280x900 --mode=user > "$test_root/shell.log" 2>&1 &
+fi
 shell_pid=$!
 cleanup() {
-  kill "$shell_pid" 2> /dev/null || true
+  if test "${K_SWITCH_GDB:-0}" = 1; then
+    inferior=$(pgrep -P "$shell_pid" -x gnome-shell || true)
+    if test -n "$inferior"; then kill "$inferior" 2> /dev/null || true; fi
+  else
+    kill "$shell_pid" 2> /dev/null || true
+  fi
   wait "$shell_pid" 2> /dev/null || true
   if mountpoint --quiet "$XDG_RUNTIME_DIR/doc"; then
     echo "Unmounting private document portal before D-Bus shutdown"

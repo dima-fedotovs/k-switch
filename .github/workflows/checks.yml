@@ -54,7 +54,10 @@ jobs:
       - uses: ./.github/actions/prepare
       - run: npm run build
       - run: npm run test:prefs > artifacts/prefs-run.log 2>&1
+      - run: sudo apt-get install -y gdb
       - run: node scripts/shell-test.ts > artifacts/shell-run.log 2>&1
+        env:
+          K_SWITCH_GDB: '1'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
