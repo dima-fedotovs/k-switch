@@ -67,29 +67,18 @@ Unmodified function keys such as `F8` are also accepted. Separate modifier-only
 group switching such as Ctrl+Shift is unsupported: the XKB switching signal does
 not identify which modifier combination triggered it.
 
-While the extension is enabled, two actions appear under **GNOME Settings →
-Keyboard → View and Customize Shortcuts → Custom Shortcuts**:
+Group shortcuts are registered directly with GNOME Shell and work in applications
+and the overview while K-switch is enabled. Configure them in K-switch; they do
+not appear in GNOME Settings. No external command, helper or Custom Shortcuts
+registration is used. Disabling releases both bindings. Changes apply live.
+A registration failure rolls back acquired bindings and reports a startup error;
+choose another assignment and re-enable. Accelerators already owned by another
+component may be unavailable.
 
-- **K-switch: Next group**
-- **K-switch: Previous group**
-
-Assign either there or in our Switching page. Changes synchronize both ways.
-Deleting a system action clears its assignment; assigning a new nonempty shortcut
-in K-switch restores that action. GNOME's settings daemon handles the global
-key and invokes the corresponding extension D-Bus action. These are standard
-[GNOME custom shortcuts](https://help.gnome.org/gnome-help/keyboard-shortcuts-set),
-not replacements for GNOME's input-source shortcuts.
-
-Disabling removes only our registered paths and unexports our actions. Unrelated
-custom shortcuts and paths repurposed to another command are preserved. When the
-system schemas are unavailable, locked, or the reserved path belongs to another
-command, a notification explains that extension-local bindings are used instead;
-those fallback bindings do not appear in GNOME Settings. An accelerator already
-owned by another component may be unavailable; choose another combination.
-Losing ownership while enabled also switches to local bindings and reports the
-change. Only the affected action changes transport; other system actions keep
-their existing keyboard grabs.
-Removing both system actions clears both assignments in one update.
+Next and previous must be different when both are set: GTK-equivalent spellings
+such as `<Ctrl><Alt>n` and `<Alt><Control>n` are rejected on edit/import. Both may
+be empty. Existing assignments are never silently rewritten; saved duplicates
+are marked as errors in preferences until corrected.
 
 While enabled, K-switch temporarily replaces **`grp:` XKB options** with the
 within-group preset, preserving other options. Disabling restores previous group
@@ -129,8 +118,6 @@ and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut
 (next), `previousGroupShortcut`, `showIndicator`, `showSource`, and `version`.
 Source IDs include their type, for example `xkb:us` or `ibus:anthy`. Legacy
 GSettings keys are retained for migration; subsequent edits use version 3.
-System custom-shortcut names, commands and registration paths are local integration
-state and are not exported.
 
 ## Development and architecture
 
@@ -186,8 +173,8 @@ Results are in `artifacts/`.
 
 GNOME Shell and preferences run in separate processes. Lint rules enforce their
 boundaries. Only the runtime adapter uses Shell's internal source-manager API.
-Owned handlers, custom-shortcut registrations, D-Bus actions, local fallback
-keybindings, panel widgets and XKB options are released on disable.
+Owned handlers, the runtime-version D-Bus service, direct keybindings, panel
+widgets and XKB options are released on disable.
 The GNOME 50.1 adapter applies the current XKB ID explicitly after option changes:
 the installed `reapply()` passes an object where its helper expects an ID. Native
 tests press new shortcuts without an intervening source activation and reject
@@ -270,9 +257,9 @@ Unit tests cover group policy, migration and configuration validation with
 Native checks exercise sticky unassigned sources, group overlap/order, separate
 short/long names, optional source display, indicator selection/visibility, real
 IBus activation, unavailable engines, source removal, virtual evdev input for all
-eight presets, both system group shortcuts through a private `gsd-media-keys`,
-live system reassignment and cleanup/re-enable/conflict scenarios. Real GSettings
-checks verify two-way shortcut sync, deletion/restoration and ownership cleanup.
+eight presets, both direct group shortcuts, live reassignment, empty assignments, registration
+rollback and cleanup/re-enable scenarios. GTK checks reject equivalent shortcut
+assignments on edit/import and display saved duplicates without rewriting them.
 GTK checks cover group and source editing, settings updates after import, and a
 three-group scrolling regression with focused/unfocused controls, rapid checkbox
 edits and external settings updates.

@@ -5,7 +5,6 @@ import { getShortcut } from '../src/core/config.js';
 import { parseGroupConfiguration } from '../src/core/group-config.js';
 import { OptionsLease } from '../src/core/options.js';
 import { readConfiguration, writeConfiguration } from '../src/shared/settings.js';
-import { verifySystemShortcuts } from './system-shortcuts-smoke.js';
 import { verifyInitialSettings } from './initial-settings-smoke.js';
 import { verifyInstalledVersion } from './installed-version-smoke.js';
 import { readConfigurationFile, writeConfigurationFile } from '../src/prefs/config-files.js';
@@ -90,6 +89,5 @@ try {
   }
   GLib.rmdir(directory);
 }
-verifySystemShortcuts(settings);
 await verifyInstalledVersion();
 console.warn('GJS + real GSettings and bounded configuration-file checks passed (memory backend).');

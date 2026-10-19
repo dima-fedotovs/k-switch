@@ -1,18 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gio from 'gi://Gio';
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { getShortcut } from '../core/config.js';
 import { OptionsLease, type OptionsPort } from '../core/options.js';
 import type { SignalOverride } from '../core/signal-override.js';
-import { GroupActions } from './actions.js';
-import {
-  createSystemShortcuts,
-  SHORTCUT_ACTIONS,
-  type ShortcutAction,
-  type SystemShortcuts,
-} from '../shared/system-shortcuts.js';
+import { RuntimeVersionService } from './version-service.js';
+import { GroupBindings } from './keybindings.js';
 import { GroupController } from './groups.js';
 import { GroupIndicator } from './indicator.js';
 import { interceptSwitching, reapplyCurrentLayout } from './keyboard.js';
@@ -31,9 +24,8 @@ export class Session {
   #lease: OptionsLease | null = null;
   #shortcut = '';
   #refreshing = false;
-  readonly #bound: string[] = [];
-  #actions: GroupActions | null = null;
-  #systemShortcuts: SystemShortcuts | null = null;
+  #bindings: GroupBindings | null = null;
+  #versionService: RuntimeVersionService | null = null;
 
   constructor(settings: Gio.Settings, preferences: () => void) {
     this.#settings = settings;
@@ -50,19 +42,9 @@ export class Session {
     this.#indicator = new GroupIndicator(this.#preferences);
     this.#override = interceptSwitching(() => this.#controller?.within());
     this.#applyOptions();
-    this.#actions = new GroupActions(this.#controller);
-    this.#systemShortcuts = createSystemShortcuts(
-      this.#settings,
-      (error) => {
-        Main.notifyError('K-switch', String(error));
-      },
-      (actions) => {
-        this.#bindLocal(actions);
-      },
-    );
-    if (!this.#systemShortcuts?.start()) {
-      this.#bindLocal();
-    }
+    this.#versionService = new RuntimeVersionService();
+    this.#bindings = new GroupBindings(this.#settings, this.#controller);
+    this.#bindings.start();
     this.#listen(this.#settings, 'changed::configuration', () => {
       this.#refresh();
     });
@@ -85,13 +67,10 @@ export class Session {
     for (const signal of this.#signals.splice(0)) {
       signal.settings.disconnect(signal.id);
     }
-    for (const key of this.#bound.splice(0)) {
-      Main.wm.removeKeybinding(key);
-    }
-    this.#systemShortcuts?.destroy();
-    this.#systemShortcuts = null;
-    this.#actions?.destroy();
-    this.#actions = null;
+    this.#bindings?.destroy();
+    this.#bindings = null;
+    this.#versionService?.destroy();
+    this.#versionService = null;
     this.#controller?.destroy();
     this.#controller = null;
     this.#indicator?.destroy();
@@ -102,29 +81,6 @@ export class Session {
       this.#lease.release();
       this.#lease = null;
       reapplyCurrentLayout();
-    }
-  }
-
-  #bindLocal(actions: readonly ShortcutAction[] = SHORTCUT_ACTIONS): void {
-    Main.notifyError(
-      'K-switch',
-      'System custom shortcuts are unavailable. Configure group shortcuts in K-switch.',
-    );
-    for (const action of actions) {
-      this.#bound.push(action.key);
-      Main.wm.addKeybinding(
-        action.key,
-        this.#settings,
-        Meta.KeyBindingFlags.NONE,
-        Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-        () => {
-          if (action.id === 'next') {
-            this.#controller?.next();
-          } else {
-            this.#controller?.previous();
-          }
-        },
-      );
     }
   }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import { ACTION_INTERFACE, ACTION_PATH } from './system-shortcuts.js';
+import { VERSION_INTERFACE, VERSION_PATH } from './version-rpc.js';
 
 export async function shellVersion(uuid: string, cancellable: Gio.Cancellable): Promise<string> {
   const metadata = await extensionInfo(uuid, cancellable);
@@ -53,8 +53,8 @@ function runtimeVersion(cancellable: Gio.Cancellable): Promise<string> {
   return new Promise((resolve, reject) => {
     Gio.DBus.session.call(
       'org.gnome.Shell',
-      ACTION_PATH,
-      ACTION_INTERFACE,
+      VERSION_PATH,
+      VERSION_INTERFACE,
       'GetRuntimeVersion',
       null,
       new GLib.VariantType('(s)'),

@@ -17,8 +17,9 @@ Read README.md and CONTRIBUTING.md before modifying this project.
   case-insensitive comparison and Unicode composition normalization. Reject duplicate edits/imports;
   repair stored duplicates with suffixes while preserving IDs, order and membership.
   Display names literally and use stable IDs for control/focus identity.
-- Integrate next/previous actions with GNOME custom shortcuts bidirectionally;
-  own only our paths and preserve unrelated or repurposed shortcuts.
+- Register optional next/previous group bindings directly with Main.wm in NORMAL
+  and OVERVIEW. Do not add external transports or Custom Shortcuts integration.
+  Reject equivalent nonempty GTK accelerators on edit/import before writing.
 - Support all configured GNOME sources, including IBus. Reconcile against saved
   GNOME settings; transient engine unavailability must not delete membership.
 - Keep Caps Lock as the default within-group shortcut and Shift+Caps Lock for Caps.

@@ -4,7 +4,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk?version=4.0';
 import { reconcile } from '../core/groups.js';
-import { validAccelerator } from './switching.js';
+import { groupShortcutError } from './accelerators.js';
 import { configuredSources, readConfiguration, writeConfiguration } from '../shared/settings.js';
 import { readConfigurationFile, writeConfigurationFile } from './config-files.js';
 
@@ -98,11 +98,9 @@ async function importFile(
     return;
   }
   const configuration = readConfigurationFile(file);
-  if (
-    !validAccelerator(configuration.groupShortcut) ||
-    !validAccelerator(configuration.previousGroupShortcut)
-  ) {
-    throw new Error('Invalid group shortcut.');
+  const error = groupShortcutError(configuration);
+  if (error !== null) {
+    throw new Error(error);
   }
   await access.verify();
   if (access.cancellable.is_cancelled()) {

@@ -7,7 +7,7 @@ import { buildPreferences } from '../src/prefs/window.js';
 import { readConfiguration, synchronize, writeConfiguration } from '../src/shared/settings.js';
 import { focusName } from '../src/prefs/focus.js';
 import { verifyScrolling } from './prefs-scroll.js';
-import { validAccelerator } from '../src/prefs/switching.js';
+import { groupShortcutError, validAccelerator } from '../src/prefs/accelerators.js';
 import { verifyCachedSchema, verifySessionGuard } from './session-guard-smoke.js';
 import { verifyPreferencesRequests } from './preferences-request-smoke.js';
 import { verifyGroupNames } from './prefs-names.js';
@@ -213,6 +213,7 @@ async function verifyTransfer(
     !validAccelerator('<Control><Shift>') && !validAccelerator('a'),
     'Reject modifier-only and bare typing',
   );
+  await verifyDuplicateShortcuts(window, settings);
   await verifyIndicatorOptions(window, settings);
   await verifyScrolling(window, settings);
   const screenshot = GLib.getenv('K_SWITCH_SCREENSHOT');
@@ -223,6 +224,38 @@ async function verifyTransfer(
     );
     check(capture.wait_check(null), 'Screenshot must be saved');
   }
+}
+
+async function verifyDuplicateShortcuts(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
+  const original = readConfiguration(settings);
+  check(groupShortcutError(original) === null, 'Two empty bindings are valid');
+  for (const previous of ['<Ctrl><Alt>n', '<Alt><Control>n']) {
+    writeConfiguration(settings, { ...original, groupShortcut: '<Control><Alt>n' });
+    await settle();
+    const row = descendants(window).find(
+      (widget) => widget instanceof Adw.EntryRow && widget.name === 'previousGroupShortcut',
+    );
+    if (!(row instanceof Adw.EntryRow)) {
+      throw new Error('Missing previous shortcut editor');
+    }
+    row.text = previous;
+    row.emit('apply');
+    check(row.has_css_class('error'), 'Equivalent accelerators show an error');
+    check(readConfiguration(settings).previousGroupShortcut === '', 'Duplicate edits do not write');
+    writeConfiguration(settings, {
+      ...original,
+      groupShortcut: '<Ctrl><Alt>n',
+      previousGroupShortcut: previous,
+    });
+    await settle();
+    check(row.has_css_class('error'), 'Saved duplicates remain visible as errors');
+    check(
+      readConfiguration(settings).previousGroupShortcut === previous,
+      'Stored values are not rewritten',
+    );
+  }
+  writeConfiguration(settings, original);
+  await settle();
 }
 
 async function verifyIndicatorOptions(window: Gtk.Widget, settings: Gio.Settings): Promise<void> {
