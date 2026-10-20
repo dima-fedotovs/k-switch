@@ -41,8 +41,9 @@ export class GroupIndicator {
       controller.configuration.showSource,
     );
     this.#label.visible = this.#label.text !== '';
-    this.#icon.visible = !this.#label.visible;
-    this.button.style = this.#icon.visible ? '-natural-hpadding: 10px;' : null;
+    this.#icon.visible = controller.configuration.showIcon;
+    this.button.style =
+      this.#icon.visible && !this.#label.visible ? '-natural-hpadding: 10px;' : null;
     this.button.accessible_name = this.#label.text || 'K-switch';
     const menu = this.button.menu;
     if (!(menu instanceof PopupMenu.PopupMenu)) {
@@ -65,7 +66,7 @@ export class GroupIndicator {
         item.id === controller.state.group ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE,
       );
     }
-    this.button.visible = controller.configuration.showIndicator;
+    this.button.visible = this.#icon.visible || this.#label.visible;
   }
 
   #rebuild(controller: GroupController, menu: PopupMenu.PopupMenu): void {

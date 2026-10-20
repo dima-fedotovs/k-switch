@@ -123,9 +123,7 @@ async function verifySwitching(window: Adw.PreferencesWindow): Promise<void> {
   check(window.child_focus(Gtk.DirectionType.TAB_FORWARD), 'Keyboard navigation remains usable');
   await settle();
   check(
-    widgets(window).some(
-      (item) => item instanceof Adw.SwitchRow && item.title === _('Show group indicator'),
-    ),
+    widgets(window).some((item) => item instanceof Adw.SwitchRow && item.title === _('Show icon')),
     'Switching page is translated',
   );
   check(
@@ -134,9 +132,9 @@ async function verifySwitching(window: Adw.PreferencesWindow): Promise<void> {
         item instanceof Adw.SwitchRow &&
         item.name === 'showGroup' &&
         item.title === _('Show group name') &&
-        item.subtitle === _('Hide both labels to show the K-switch icon.'),
+        item.subtitle === _("Show the group's short name in the panel."),
     ),
-    'Icon-only controls have translated text and stable identity',
+    'Independent indicator controls have translated text and stable identity',
   );
   const screenshot = GLib.getenv('K_SWITCH_SCREENSHOT');
   if (screenshot !== null) {

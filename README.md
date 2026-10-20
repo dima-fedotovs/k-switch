@@ -8,11 +8,12 @@ The default is Caps Lock, with Shift+Caps Lock toggling normal Caps Lock.
 You can also assign shortcuts to move between groups.
 
 The optional panel indicator shows the group's short name by default.
-**Show group name** and **Show selected language** control the two labels
-independently; the language is off by default. When both labels are hidden, an
-original symbolic K-switch icon keeps the menu accessible. It follows the panel's
-light/dark theme. **Show group indicator** hides the entire indicator, including
-the icon. GNOME's existing language indicator remains separately managed.
+**Show icon**, **Show group name** and **Show selected language** independently
+control the three elements in that order. Any combination is allowed, including
+the icon alongside either or both labels. Turning off all three hides the entire
+indicator. The group name alone is the default; the icon and language start off.
+The original symbolic icon follows the panel's light/dark theme. GNOME's existing
+language indicator remains separately managed.
 Icon-only mode uses compact panel spacing; modes with text keep the theme's
 normal button spacing.
 
@@ -124,7 +125,12 @@ not exported.
 Version 3 configurations keep their previous display options and enable the group
 label when upgraded. Existing groups and shortcuts are preserved.
 
-Import accepts versions 1, 2, 3 and 4 and validates before writing. Unknown fields,
+Version 4 display settings migrate to version 5 without changing the visible
+elements: a hidden indicator stays hidden, labels stay as displayed, and icon-only
+mode stays icon-only. The former master visibility switch is removed. Groups,
+shortcuts and active-group state are preserved.
+
+Import accepts versions 1, 2, 3, 4 and 5 and validates before writing. Unknown fields,
 duplicate identifiers and unsupported versions are rejected. Sources absent on
 the target computer are removed with a message; import never changes GNOME input
 sources. Configuration files are UTF-8 JSON with a 16 KiB size limit. Oversized
@@ -133,11 +139,11 @@ Duplicate names in imports are rejected before writing. Previously saved duplica
 names receive ` (2)`, ` (3)` suffixes without deleting groups or changing their IDs,
 membership or order. Existing suffixed names are reserved during that repair.
 
-Version 4 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
+Version 5 stores `groups` (ordered objects with `id`, `name`, `longName`, `skip`,
 and ordered `entries` containing `source`/`enabled`), `shortcut`, `groupShortcut`
-(next), `previousGroupShortcut`, `showIndicator`, `showGroup`, `showSource`, and `version`.
+(next), `previousGroupShortcut`, `showIcon`, `showGroup`, `showSource`, and `version`.
 Source IDs include their type, for example `xkb:us` or `ibus:anthy`. Legacy
-GSettings keys are retained for migration; subsequent edits use version 4.
+GSettings keys are retained for migration; subsequent edits use version 5.
 
 ## Development and architecture
 
@@ -315,10 +321,11 @@ before writing, and successful import/export. Fresh GSettings checks cover zero,
 one, two and three configured sources, IBus-first ordering and legacy overrides.
 A second private Shell starts without US or Russian sources and verifies fresh
 membership and real Caps cycling directly against its configured source order.
-Indicator tests cover all four label modes, the packaged SVG fallback, and hiding
-the whole indicator in icon-only mode. They toggle options with the menu open and ensure
+Indicator tests cover all eight combinations of the independent icon, group and
+source switches, the packaged SVG, and hiding the button when all three are off.
+They toggle options with the menu open and ensure
 activating a group retains its menu item until event handling completes.
-Native checks compare all four modes against standard panel content widths,
+Native checks compare all eight modes against standard panel content widths,
 using compact AppIndicator spacing for icon-only mode, to catch extra padding
 and labels excluded from size calculations. Restoring text also restores normal spacing.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
@@ -328,7 +335,8 @@ controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
 missing tools. Manual wording and visual acceptance of both translations is
 tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
 Final visual acceptance of the new icon and display controls is part of that
-manual checklist. Version 0.4.2 is intended for testing; whole-project manual
+manual checklist. The working build is 0.4.3-dev.0; the latest published testing
+version is 0.4.2. Whole-project manual
 acceptance remains open.
 Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.

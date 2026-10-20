@@ -10,15 +10,19 @@ export function verifyIndicatorLayout(
   label: St.Label,
 ): void {
   const reference = new PanelMenu.Button(0.0, 'Standard indicator layout reference');
-  reference.style = icon.visible ? '-natural-hpadding: 10px;' : null;
+  reference.style = icon.visible && !label.visible ? '-natural-hpadding: 10px;' : null;
   const content = new St.BoxLayout({ style_class: 'panel-status-indicators-box' });
-  content.add_child(
-    icon.visible
-      ? new St.Icon({ gicon: icon.gicon, style_class: 'system-status-icon', style: 'margin: 0;' })
-      : new St.Label({ text: label.text, y_align: Clutter.ActorAlign.CENTER }),
-  );
+  if (icon.visible) {
+    content.add_child(
+      new St.Icon({ gicon: icon.gicon, style_class: 'system-status-icon', style: 'margin: 0;' }),
+    );
+  }
+  if (label.visible) {
+    content.add_child(new St.Label({ text: label.text, y_align: Clutter.ActorAlign.CENTER }));
+  }
   reference.add_child(content);
   Main.panel.addToStatusArea('k-switch-layout-reference', reference);
+  reference.visible = button.visible;
   try {
     const [, actual] = button.get_preferred_width(-1);
     const [, expected] = reference.get_preferred_width(-1);

@@ -66,47 +66,47 @@ export async function verifyIndicatorModes(
   const { icon, label, menu } = indicatorWidgets(button);
   const rows = menu._getMenuItems();
   try {
-    for (const [showGroup, showSource, expected] of [
-      [true, false, name],
-      [true, true, `${name} · ${source}`],
-      [false, true, source],
-      [false, false, ''],
+    for (const [showIcon, showGroup, showSource, expected] of [
+      [true, false, false, ''],
+      [true, true, false, name],
+      [true, true, true, `${name} · ${source}`],
+      [true, false, true, source],
+      [false, true, false, name],
+      [false, true, true, `${name} · ${source}`],
+      [false, false, true, source],
+      [false, false, false, ''],
     ] as const) {
       writeConfiguration(settings, {
         ...configuration,
-        showIndicator: true,
+        showIcon,
         showGroup,
         showSource,
       });
       await settle();
       check(label.text === expected, 'Both labels can be configured independently');
-      check(label.visible === (expected !== ''), 'Text is hidden in icon-only mode');
-      check(
-        icon.visible === (expected === ''),
-        'The icon appears only when both labels are hidden',
-      );
+      check(label.visible === (expected !== ''), 'Only selected labels are visible');
+      check(icon.visible === showIcon, 'Icon visibility is independent of both labels');
       verifyIndicatorLayout(button, icon, label);
       check(
         button.accessible_name === (expected || 'K-switch'),
         'Every mode has an accessible name',
       );
-      menu.open();
-      await settle();
       check(
-        menu.isOpen && button.visible && button.can_focus,
-        'Every indicator mode keeps menu access',
+        button.visible === (showIcon || expected !== ''),
+        'The indicator is hidden only when all three elements are off',
       );
+      if (button.visible) {
+        menu.open();
+        await settle();
+        check(menu.isOpen && button.can_focus, 'Every visible combination keeps menu access');
+      } else {
+        check(!menu.isOpen, 'Disabling all elements closes the menu');
+      }
       check(
         rows.every((row, index) => menu._getMenuItems()[index] === row),
         'Display changes retain menu actors',
       );
     }
-    writeConfiguration(settings, { ...readConfiguration(settings), showIndicator: false });
-    await settle();
-    check(
-      !button.visible && !menu.isOpen,
-      'The global switch also hides the icon and closes its menu',
-    );
   } finally {
     writeConfiguration(settings, configuration);
     await settle();

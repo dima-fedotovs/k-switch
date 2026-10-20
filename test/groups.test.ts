@@ -80,6 +80,7 @@ void test('v1/v2 migrate without the system group, preserving names, order and n
   assert.equal(migrate({ ...v1, secondSource: 'xkb:us' }).groups[0]?.entries.length, 1);
   assert.equal(base.showSource, false);
   assert.equal(base.showGroup, true);
+  assert.equal(base.showIcon, false);
   const result = reconcile(config, ['xkb:ru', 'ibus:new']);
   assert.deepEqual(result.groups[0]?.entries, [
     { source: 'xkb:ru', enabled: true },
@@ -210,19 +211,55 @@ void test('menu names prefer optional long names; panel defaults to the short gr
   assert.equal(chooseGroup(second, null, []).source, null);
 });
 
-void test('v3 migration preserves settings and keeps the group label visible', () => {
-  const { showGroup, ...previous } = config;
+void test('v2/v3 display migration preserves the visible elements, including a hidden indicator', () => {
+  const { showIcon, showGroup, ...previous } = config;
+  assert.equal(showIcon, false);
   assert.equal(showGroup, true);
-  const v3 = { ...previous, version: 3, showIndicator: false, showSource: true };
-  assert.deepEqual(parseGroupConfiguration(JSON.stringify(v3)), {
-    ...config,
-    showIndicator: false,
-    showSource: true,
-  });
+  for (const visible of [false, true]) {
+    for (const source of [false, true]) {
+      const v3 = { ...previous, version: 3, showIndicator: visible, showSource: source };
+      assert.deepEqual(parseGroupConfiguration(JSON.stringify(v3)), {
+        ...config,
+        showGroup: visible,
+        showSource: visible && source,
+      });
+    }
+    assert.equal(
+      parseGroupConfiguration(JSON.stringify({ ...v2, showIndicator: visible })).showGroup,
+      visible,
+    );
+  }
+});
+
+void test('v4 migration preserves all eight combinations of the master switch and labels', () => {
+  const { showIcon, ...previous } = config;
+  assert.equal(showIcon, false);
   for (const visible of [false, true]) {
     for (const group of [false, true]) {
       for (const source of [false, true]) {
-        const value = { ...config, showIndicator: visible, showGroup: group, showSource: source };
+        const v4 = {
+          ...previous,
+          version: 4,
+          showIndicator: visible,
+          showGroup: group,
+          showSource: source,
+        };
+        assert.deepEqual(parseGroupConfiguration(JSON.stringify(v4)), {
+          ...config,
+          showIcon: visible && !group && !source,
+          showGroup: visible && group,
+          showSource: visible && source,
+        });
+      }
+    }
+  }
+});
+
+void test('v5 round trips every combination of independent icon, group and source visibility', () => {
+  for (const icon of [false, true]) {
+    for (const group of [false, true]) {
+      for (const source of [false, true]) {
+        const value = { ...config, showIcon: icon, showGroup: group, showSource: source };
         assert.deepEqual(parseGroupConfiguration(JSON.stringify(value)), value);
       }
     }
@@ -235,7 +272,7 @@ void test('rejects invalid current and legacy configurations before applying any
     [],
     3,
     {},
-    { ...config, version: 5 },
+    { ...config, version: 6 },
     { ...config, version: 3 },
     { ...config, extra: true },
     { ...config, shortcut: '' },
@@ -247,7 +284,8 @@ void test('rejects invalid current and legacy configurations before applying any
     { ...config, showSource: null },
     { ...config, showGroup: null },
     { ...config, showGroup: undefined },
-    { ...config, showIndicator: null },
+    { ...config, showIcon: null },
+    { ...v2, showIndicator: null },
     { ...config, groups: null },
     { ...config, groups: [second, second] },
     { ...v2, allSkip: 1 },

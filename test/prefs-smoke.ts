@@ -280,6 +280,7 @@ async function verifyIndicatorOptions(window: Gtk.Widget, settings: Gio.Settings
   );
   writeConfiguration(settings, {
     ...readConfiguration(settings),
+    showIcon: false,
     showGroup: true,
     showSource: false,
     previousGroupShortcut: '',
@@ -292,7 +293,7 @@ async function verifyIndicatorSwitches(window: Gtk.Widget, settings: Gio.Setting
     (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showSource',
   );
   const indicator = descendants(window).find(
-    (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showIndicator',
+    (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showIcon',
   );
   const group = descendants(window).find(
     (widget) => widget instanceof Adw.SwitchRow && widget.name === 'showGroup',
@@ -304,6 +305,18 @@ async function verifyIndicatorSwitches(window: Gtk.Widget, settings: Gio.Setting
   ) {
     throw new Error('Missing indicator options');
   }
+  check(
+    descendants(window)
+      .filter(
+        (widget) =>
+          widget instanceof Adw.SwitchRow &&
+          ['showIcon', 'showGroup', 'showSource'].includes(widget.name),
+      )
+      .map((widget) => widget.name)
+      .join(',') === 'showIcon,showGroup,showSource',
+    'Indicator switches are ordered icon, short group name, input source',
+  );
+  check(!indicator.active, 'The icon is off by default while the group label is shown');
   check(!source.active, 'Selected language is off by default');
   check(group.active, 'Group name is on by default');
   for (const [visible, name, language] of [
@@ -322,7 +335,7 @@ async function verifyIndicatorSwitches(window: Gtk.Widget, settings: Gio.Setting
     await settle();
     const configuration = readConfiguration(settings);
     check(
-      configuration.showIndicator === visible &&
+      configuration.showIcon === visible &&
         configuration.showGroup === name &&
         configuration.showSource === language,
       'Rapid edits to all indicator switches must persist together',

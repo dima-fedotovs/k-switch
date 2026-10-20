@@ -48,7 +48,7 @@ function shortcutRow(
 
 function visibilityRow(
   context: EditorContext,
-  field: 'showIndicator' | 'showGroup' | 'showSource',
+  field: 'showIcon' | 'showGroup' | 'showSource',
   title: string,
   subtitle: string,
 ): Adw.SwitchRow {
@@ -96,9 +96,9 @@ export function switchingEditor(context: EditorContext): Adw.PreferencesGroup {
   section.add(
     visibilityRow(
       context,
-      'showIndicator',
-      _('Show group indicator'),
-      _('The standard GNOME indicator is managed separately.'),
+      'showIcon',
+      _('Show icon'),
+      _('Independent of the labels. Hide all three elements to hide the indicator.'),
     ),
   );
   section.add(
@@ -106,7 +106,7 @@ export function switchingEditor(context: EditorContext): Adw.PreferencesGroup {
       context,
       'showGroup',
       _('Show group name'),
-      _('Hide both labels to show the K-switch icon.'),
+      _("Show the group's short name in the panel."),
     ),
   );
   section.add(
