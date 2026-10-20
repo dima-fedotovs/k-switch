@@ -6,6 +6,7 @@ import type * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 import { readConfiguration, writeConfiguration } from '../src/shared/settings.js';
+import { verifyIndicatorLayout } from './indicator-layout.js';
 
 function check(value: boolean, message: string): void {
   if (!value) {
@@ -27,8 +28,13 @@ function indicatorWidgets(button: PanelMenu.Button): {
   label: St.Label;
   menu: PopupMenu.PopupMenu;
 } {
-  const label = button.get_children().find((child) => child instanceof St.Label);
-  const icon = button.get_children().find((child) => child instanceof St.Icon);
+  const content = button.get_first_child();
+  if (!(content instanceof St.BoxLayout)) {
+    throw new Error('Missing indicator content container');
+  }
+  const children = content.get_children();
+  const label = children.find((child) => child instanceof St.Label);
+  const icon = children.find((child) => child instanceof St.Icon);
   const menu = button.menu;
   if (
     !(icon instanceof St.Icon) ||
@@ -79,6 +85,7 @@ export async function verifyIndicatorModes(
         icon.visible === (expected === ''),
         'The icon appears only when both labels are hidden',
       );
+      verifyIndicatorLayout(button, icon, label);
       check(
         button.accessible_name === (expected || 'K-switch'),
         'Every mode has an accessible name',
@@ -103,5 +110,6 @@ export async function verifyIndicatorModes(
   } finally {
     writeConfiguration(settings, configuration);
     await settle();
+    verifyIndicatorLayout(button, icon, label);
   }
 }

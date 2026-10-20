@@ -13,6 +13,8 @@ independently; the language is off by default. When both labels are hidden, an
 original symbolic K-switch icon keeps the menu accessible. It follows the panel's
 light/dark theme. **Show group indicator** hides the entire indicator, including
 the icon. GNOME's existing language indicator remains separately managed.
+Icon-only mode uses compact panel spacing; modes with text keep the theme's
+normal button spacing.
 
 ## Groups and switching
 
@@ -316,6 +318,9 @@ membership and real Caps cycling directly against its configured source order.
 Indicator tests cover all four label modes, the packaged SVG fallback, and hiding
 the whole indicator in icon-only mode. They toggle options with the menu open and ensure
 activating a group retains its menu item until event handling completes.
+Native checks compare all four modes against standard panel content widths,
+using compact AppIndicator spacing for icon-only mode, to catch extra padding
+and labels excluded from size calculations. Restoring text also restores normal spacing.
 Preferences-opening D-Bus failures are handled and reported; disabling cancels
 outstanding requests. English, Russian and Latvian fixtures check translated GTK controls and the
 Shell menu, literal names, focus and fresh FR/DE/ES setup. Gettext negative

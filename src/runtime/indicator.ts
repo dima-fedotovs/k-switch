@@ -20,9 +20,15 @@ export class GroupIndicator {
 
   constructor(preferences: () => void, icon: Gio.Icon) {
     this.#preferences = preferences;
-    this.#icon = new St.Icon({ gicon: icon, style_class: 'system-status-icon' });
-    this.button.add_child(this.#icon);
-    this.button.add_child(this.#label);
+    this.#icon = new St.Icon({
+      gicon: icon,
+      style_class: 'system-status-icon',
+      style: 'margin: 0;',
+    });
+    const content = new St.BoxLayout({ style_class: 'panel-status-indicators-box' });
+    content.add_child(this.#icon);
+    content.add_child(this.#label);
+    this.button.add_child(content);
     Main.panel.addToStatusArea('k-switch', this.button);
   }
 
@@ -36,6 +42,7 @@ export class GroupIndicator {
     );
     this.#label.visible = this.#label.text !== '';
     this.#icon.visible = !this.#label.visible;
+    this.button.style = this.#icon.visible ? '-natural-hpadding: 10px;' : null;
     this.button.accessible_name = this.#label.text || 'K-switch';
     const menu = this.button.menu;
     if (!(menu instanceof PopupMenu.PopupMenu)) {
