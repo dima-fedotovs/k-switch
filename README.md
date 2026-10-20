@@ -335,9 +335,8 @@ controls reject stale POT, untranslated/fuzzy catalogs, bad placeholders and
 missing tools. Manual wording and visual acceptance of both translations is
 tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
 Final visual acceptance of the new icon and display controls is part of that
-manual checklist. The working build is 0.4.3-dev.0; the latest published testing
-version is 0.4.2. Whole-project manual
-acceptance remains open.
+manual checklist. Version 1.0.0 is the first stable GitHub release; the previous
+testing release is 0.4.2. Whole-project manual acceptance remains open in #19.
 Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
@@ -373,7 +372,8 @@ their hashes before publication.
 Actions are pinned to full commits, and only the release job has publication
 permissions. The backup development branch remains local.
 
-Before a stable release or an EGO submission:
+The separate manual acceptance checklist remains in
+[#19](https://github.com/dima-fedotovs/k-switch/issues/19):
 
 - Review and accept maintainership, including the AI-assisted entry points;
   follow the [GNOME review guidelines](https://gjs.guide/extensions/review-guidelines/review-guidelines.html).
