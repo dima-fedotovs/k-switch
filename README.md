@@ -160,7 +160,18 @@ strict TypeScript, unit tests with **100% statements/functions/branches/lines fo
 line limit), catalog freshness/completeness/placeholder validation, and a
 real GJS/GSettings/file smoke test with an in-memory backend. It also runs the
 hash-locked Shexli 0.2.1 analyzer on the built ZIP and requires zero findings.
-Keep the virtual environment active when running checks or committing.
+Keep the virtual environment active when running checks directly. Git hooks add
+the project's `.venv/bin` themselves and use the Node/npm paths saved locally by
+`npm run hooks:install`, so commits from an IDE do not depend on its terminal PATH.
+Select the project Node version (`nvm install && nvm use` when using NVM) before
+installing hooks. Rerun `npm run hooks:install` after moving/replacing Node or npm,
+or in a new clone. Hooks fail with setup instructions if those tools are missing;
+they never skip checks or download tools during a commit.
+You may commit selected files or hunks: pre-commit runs the complete gate on a
+temporary copy of the Git index. Unstaged/untracked work is excluded and remains
+untouched. The staged and working lockfiles must match to share `node_modules`.
+Temporary build outputs are removed after checks. Pre-push checks the clean
+working tree as before.
 
 Run `npm run clean` to remove generated compilation, build, test and scan output
 (`.build/`, `dist/`, `artifacts/`, `coverage/` and `.nyc_output/`). Dependencies in

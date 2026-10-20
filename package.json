@@ -13,7 +13,7 @@
     "test": "npm run compile && c8 --all --include '.build/src/core/**/*.js' --check-coverage --lines 100 --functions 100 --branches 100 --statements 100 node --experimental-test-isolation=none --test '.build/test/*.test.js'",
     "build": "npm run compile && node scripts/build.ts",
     "check": "npm run format:check && npm run lint && npm run lint:shell && npm run typecheck && npm test && npm run build && npm run check:shexli && npm run test:gjs",
-    "hooks:install": "git config core.hooksPath .githooks",
+    "hooks:install": "node scripts/install-hooks.ts",
     "test:gjs": "node scripts/gjs-test.ts",
     "test:shell": "npm run build && node scripts/shell-test.ts",
     "test:prefs": "node scripts/prefs-test.ts",

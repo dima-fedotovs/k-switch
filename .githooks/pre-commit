@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-if ! git diff --quiet; then
-  echo 'Stage all intended changes before committing; partial staged snapshots are not accepted.' >&2
-  exit 1
-fi
 git diff --cached --check
-if test -n "$(git ls-files --others --exclude-standard)"; then
-  echo 'Stage all new project files before committing so the checked tree matches the commit.' >&2
-  exit 1
-fi
-npm run check
-git diff --quiet
+bash scripts/git-check.sh --staged
