@@ -66,9 +66,16 @@ in issue #19. Do not close that issue with an implementation PR.
 
 ## Commits and releases
 
-Install hooks with `npm run hooks:install`. Commit whole, checked iterations;
-partial staging is rejected because the tested working tree must match the
-snapshot being committed. Pushes require a clean tree with no untracked project
+Install hooks with `npm run hooks:install`. The installer records this clone's
+Node/npm executable paths for IDE commits.
+Select the project Node version first and rerun the installer when tools move.
+Hooks also expose the project's `.venv/bin` for the pinned Shexli scanner.
+Partial file and hunk staging is supported. Pre-commit checks the exact staged
+snapshot in a temporary directory, leaving unstaged and untracked files untouched.
+It shares installed dependencies only when the staged and working lockfiles match;
+install dependencies matching that lockfile before committing dependency changes.
+The hook rejects changes to the index during checks and removes its temporary
+build outputs afterwards. Pushes require a clean tree with no untracked project
 files. Do not use `--no-verify` to bypass a failed gate.
 
 Keep README release limitations current. Public publication needs a real project

@@ -7,4 +7,4 @@ if test -n "$(git ls-files --others --exclude-standard)"; then
   echo 'Commit or remove untracked project files before pushing.' >&2
   exit 1
 fi
-exec npm run check
+exec bash scripts/git-check.sh

@@ -1,7 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Generated with AI for personal use.
-// Do NOT upload to extensions.gnome.org (EGO) unless you understand JavaScript
-// and can maintain this code.
 import { GETTEXT_DOMAIN } from './shared/release.js';
 import { _, text, errorText } from './shared/i18n.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -18,6 +15,10 @@ export default class KSwitch extends Extension {
   #versionService: RuntimeVersionService | null = null;
 
   override enable(): void {
+    if (this.#request !== null) {
+      console.warn('K-switch: Ignoring repeated enable(); an activation is already owned.');
+      return;
+    }
     this.initTranslations(GETTEXT_DOMAIN);
     const request = new Gio.Cancellable();
     this.#request = request;
@@ -67,8 +68,12 @@ export default class KSwitch extends Extension {
 
   override disable(): void {
     const request = this.#request;
+    if (request === null) {
+      console.warn('K-switch: Ignoring disable(); no activation is owned.');
+      return;
+    }
     this.#request = null;
-    request?.cancel();
+    request.cancel();
     const versionService = this.#versionService;
     this.#versionService = null;
     try {

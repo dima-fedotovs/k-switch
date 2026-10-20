@@ -86,6 +86,12 @@ review. No whole project, directory or upstream license is blanket-excluded.
 
 ## Dependency inventory
 
+Development version 0.4.3-dev.0 changes only the application's two version fields
+in `package-lock.json`; the dependency graph, integrity values and license fields
+are unchanged. The existing license-metadata approvals are rebound to that exact
+lockfile SHA256 after comparing all other parsed fields. This is not a new
+SCANOSS scan or approval of changed source fragments.
+
 All npm dependencies are development/build tools and are excluded from the
 extension ZIP. The release CycloneDX SBOM retains each dependency's declared
 license and marks its build/development purpose. ScanCode scans both the tracked

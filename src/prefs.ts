@@ -1,7 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Generated with AI for personal use.
-// Do NOT upload to extensions.gnome.org (EGO) unless you understand JavaScript
-// and can maintain this code.
 import { GETTEXT_DOMAIN } from './shared/release.js';
 import type Adw from 'gi://Adw';
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';

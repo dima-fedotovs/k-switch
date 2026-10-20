@@ -89,12 +89,12 @@ export function initialConfiguration(
   primaryName = N_('Primary'),
 ): GroupConfiguration {
   return {
-    version: 4,
+    version: 5,
     shortcut,
     groupShortcut: '',
     previousGroupShortcut: '',
     showSource: false,
-    showIndicator: true,
+    showIcon: false,
     showGroup: true,
     groups: [
       {
@@ -130,20 +130,42 @@ function parseGroups(value: unknown, legacy: boolean): readonly LayoutGroup[] {
 }
 
 function versionedRecord(value: unknown): {
-  version: 2 | 3 | 4;
+  version: 2 | 3 | 4 | 5;
   item: Record<string, unknown>;
 } {
   const version =
     typeof value === 'object' && value !== null && 'version' in value ? value.version : null;
-  if (version !== 2 && version !== 3 && version !== 4) {
+  if (version !== 2 && version !== 3 && version !== 4 && version !== 5) {
     throw new MessageError('Unsupported configuration version.');
   }
   const fields = {
     2: 'allSkip,groupShortcut,groups,shortcut,showIndicator,version',
     3: 'groupShortcut,groups,previousGroupShortcut,shortcut,showIndicator,showSource,version',
     4: 'groupShortcut,groups,previousGroupShortcut,shortcut,showGroup,showIndicator,showSource,version',
+    5: 'groupShortcut,groups,previousGroupShortcut,shortcut,showGroup,showIcon,showSource,version',
   };
   return { version, item: record(value, fields[version]) };
+}
+
+function displayOptions(
+  item: Record<string, unknown>,
+  version: 2 | 3 | 4 | 5,
+): Pick<GroupConfiguration, 'showIcon' | 'showGroup' | 'showSource'> {
+  if (version === 5) {
+    return {
+      showIcon: boolean(item.showIcon),
+      showGroup: boolean(item.showGroup),
+      showSource: boolean(item.showSource),
+    };
+  }
+  const visible = boolean(item.showIndicator);
+  const group = version === 4 ? boolean(item.showGroup) : true;
+  const source = version === 2 ? false : boolean(item.showSource);
+  return {
+    showIcon: visible && !group && !source,
+    showGroup: visible && group,
+    showSource: visible && source,
+  };
 }
 
 function parseVersion(value: unknown): GroupConfiguration {
@@ -155,14 +177,12 @@ function parseVersion(value: unknown): GroupConfiguration {
     boolean(item.allSkip);
   }
   return {
-    version: 4,
+    version: 5,
     groups: parseGroups(item.groups, legacy),
     shortcut,
     groupShortcut: shortcutText(item.groupShortcut),
     previousGroupShortcut: legacy ? '' : shortcutText(item.previousGroupShortcut),
-    showIndicator: boolean(item.showIndicator),
-    showGroup: version === 4 ? boolean(item.showGroup) : true,
-    showSource: legacy ? false : boolean(item.showSource),
+    ...displayOptions(item, version),
   };
 }
 

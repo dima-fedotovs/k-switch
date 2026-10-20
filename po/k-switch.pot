@@ -248,16 +248,17 @@ msgid ""
 "overview. Example: <Super><Alt>space. Leave empty to disable."
 msgstr ""
 
-msgid "Show group indicator"
+msgid "Show icon"
 msgstr ""
 
-msgid "The standard GNOME indicator is managed separately."
+msgid ""
+"Independent of the labels. Hide all three elements to hide the indicator."
 msgstr ""
 
 msgid "Show group name"
 msgstr ""
 
-msgid "Hide both labels to show the K-switch icon."
+msgid "Show the group's short name in the panel."
 msgstr ""
 
 msgid "Show selected language"

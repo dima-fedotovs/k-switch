@@ -13,12 +13,12 @@ export interface LayoutGroup {
 }
 
 export interface GroupConfiguration {
-  readonly version: 4;
+  readonly version: 5;
   readonly groups: readonly LayoutGroup[];
   readonly shortcut: string;
   readonly groupShortcut: string;
   readonly previousGroupShortcut: string;
-  readonly showIndicator: boolean;
+  readonly showIcon: boolean;
   readonly showGroup: boolean;
   readonly showSource: boolean;
 }

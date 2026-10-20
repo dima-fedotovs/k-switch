@@ -58,11 +58,6 @@ function runFixture(mode: 'full' | 'fresh', language: 'en' | 'ru' | 'lv'): void 
       },
     );
     const result: unknown = JSON.parse(readFileSync(`${directory}/result.json`, 'utf8'));
-    assert.doesNotMatch(
-      readFileSync(`${directory}/shell.log`, 'utf8'),
-      /(?:GNOME Shell|Gjs|GLib-GObject)-CRITICAL|JS ERROR/,
-      'Native keyboard checks must not leave critical errors in GNOME Shell',
-    );
     assert(typeof result === 'object' && result !== null && 'passed' in result);
     cpSync(`${directory}/result.json`, `artifacts/${artifact}.json`);
     assert.equal(
@@ -70,6 +65,19 @@ function runFixture(mode: 'full' | 'fresh', language: 'en' | 'ru' | 'lv'): void 
       true,
       'error' in result ? String(result.error) : 'Shell checks failed',
     );
+    const shellLog = readFileSync(`${directory}/shell.log`, 'utf8');
+    assert.doesNotMatch(
+      shellLog,
+      /(?:GNOME Shell|Gjs|GLib-GObject)-CRITICAL|JS ERROR/,
+      'Native keyboard checks must not leave critical errors in GNOME Shell',
+    );
+    if (mode === 'full') {
+      assert.match(
+        shellLog,
+        /K-switch: Ignoring repeated enable\(\); an activation is already owned\./,
+      );
+      assert.match(shellLog, /K-switch: Ignoring disable\(\); no activation is owned\./);
+    }
     process.stdout.write(`${JSON.stringify({ fixture: mode, result }, null, 2)}\n`);
   } finally {
     if (existsSync(`${directory}/shell.log`)) {

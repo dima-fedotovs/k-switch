@@ -265,17 +265,17 @@ msgstr ""
 "Сочетания работают глобально, пока K-switch включён: в приложениях и обзоре. "
 "Пример: <Super><Alt>space. Оставьте поле пустым для отключения."
 
-msgid "Show group indicator"
-msgstr "Показывать индикатор группы"
+msgid "Show icon"
+msgstr "Показывать значок"
 
-msgid "The standard GNOME indicator is managed separately."
-msgstr "Стандартный индикатор GNOME настраивается отдельно."
+msgid "Independent of the labels. Hide all three elements to hide the indicator."
+msgstr "Не зависит от подписей. Отключите все три элемента, чтобы скрыть индикатор."
 
 msgid "Show group name"
 msgstr "Показывать название группы"
 
-msgid "Hide both labels to show the K-switch icon."
-msgstr "Если обе подписи скрыты, показывается значок K-switch."
+msgid "Show the group's short name in the panel."
+msgstr "Показывать короткое название группы на панели."
 
 msgid "Show selected language"
 msgstr "Показывать выбранный язык"

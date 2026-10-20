@@ -25,6 +25,7 @@ function settle(): Promise<void> {
 function delayedReader(
   file: Gio.File,
   completions: (() => void)[],
+  requests: (Gio.Cancellable | null)[],
 ): typeof file.load_contents_async {
   const load = file.load_contents_async.bind(file);
   function read(request: Gio.Cancellable | null): Promise<[Uint8Array, string]>;
@@ -39,6 +40,7 @@ function delayedReader(
     if (callback === undefined) {
       return load(request);
     }
+    requests.push(request);
     load(request, (_file, result) => {
       completions.push(() => {
         callback?.(file, result, null);
@@ -55,6 +57,7 @@ export async function verifyStartupRequests(extension: RuntimeExtension): Promis
   const load = file.load_contents_async.bind(file);
   const [, bytes] = file.load_contents(null);
   const completions: (() => void)[] = [];
+  const requests: (Gio.Cancellable | null)[] = [];
   const source = MessageTray.getSystemSource();
   let notifications = 0;
   const signal = source.connect('notification-added', (_source, notification) => {
@@ -63,20 +66,25 @@ export async function verifyStartupRequests(extension: RuntimeExtension): Promis
     }
   });
   directory.get_child = (name): Gio.File => (name === 'metadata.json' ? file : getChild(name));
-  file.load_contents_async = delayedReader(file, completions);
+  file.load_contents_async = delayedReader(file, completions, requests);
   try {
     for (const stale of [new TextDecoder().decode(bytes), '{']) {
       file.replace_contents(stale, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
       extension.enable();
+      extension.enable();
       await settle();
       check(
-        completions.length === 1 && Main.panel.statusArea['k-switch'] === undefined,
+        completions.length === 1 &&
+          requests.length === 1 &&
+          Main.panel.statusArea['k-switch'] === undefined,
         'Metadata completion is held before switching starts',
       );
       check(
         (await runtimeVersion(new Gio.Cancellable())) === VERSION,
         'Version RPC reports executing code during pending initialization',
       );
+      extension.disable();
+      check(requests[0]?.is_cancelled() === true, 'Disable cancels the original owned request');
       extension.disable();
       file.replace_contents(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
       extension.enable();
@@ -94,6 +102,7 @@ export async function verifyStartupRequests(extension: RuntimeExtension): Promis
       );
       check(notifications === 0, 'Cancelled stale success/failure stays quiet');
       extension.disable();
+      requests.length = 0;
     }
   } finally {
     extension.disable();

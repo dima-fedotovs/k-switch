@@ -284,7 +284,7 @@ async function groupChecks(settings: Gio.Settings, checked: string[]): Promise<v
   await indicatorMenuChecks(settings);
   await indicatorActivationCheck(settings);
   checked.push(
-    'Independent group/source labels, packaged SVG fallback, icon-only menu access and global visibility',
+    'Independent icon/group/source controls, all eight combinations, menu access and hiding all elements',
   );
   checked.push(
     'Repeated indicator toggles with an open menu; group activation retains its menu item and closes the menu',
@@ -302,7 +302,7 @@ async function indicatorActivationCheck(settings: Gio.Settings): Promise<void> {
   if (!(menu instanceof PopupMenu.PopupMenu)) {
     throw new Error('Missing group menu');
   }
-  writeConfiguration(settings, { ...readConfiguration(settings), showIndicator: true });
+  writeConfiguration(settings, { ...readConfiguration(settings), showIcon: true, showGroup: true });
   await settle();
   menu.open();
   await settle();
@@ -329,7 +329,11 @@ async function indicatorMenuChecks(settings: Gio.Settings): Promise<void> {
     'Menu must contain exactly configured groups and Settings, without All layouts',
   );
   for (let cycle = 0; cycle < 3; cycle += 1) {
-    writeConfiguration(settings, { ...readConfiguration(settings), showIndicator: true });
+    writeConfiguration(settings, {
+      ...readConfiguration(settings),
+      showIcon: true,
+      showGroup: true,
+    });
     await settle();
     menu.open();
     await settle();
@@ -340,7 +344,12 @@ async function indicatorMenuChecks(settings: Gio.Settings): Promise<void> {
       indicator().accessible_name.includes(' · ') === (cycle % 2 === 0),
       'Language visibility must update repeatedly with the menu open',
     );
-    writeConfiguration(settings, { ...readConfiguration(settings), showIndicator: false });
+    writeConfiguration(settings, {
+      ...readConfiguration(settings),
+      showIcon: false,
+      showGroup: false,
+      showSource: false,
+    });
     await settle();
     check(!menu.isOpen, 'Hiding the indicator must close its open menu');
   }
@@ -402,7 +411,12 @@ async function indicatorChecks(settings: Gio.Settings): Promise<void> {
     indicator().accessible_name.includes('lv · '),
     'Optional language is added to the group indicator',
   );
-  writeConfiguration(settings, { ...readConfiguration(settings), showIndicator: false });
+  writeConfiguration(settings, {
+    ...readConfiguration(settings),
+    showIcon: false,
+    showGroup: false,
+    showSource: false,
+  });
   await settle();
   check(!indicator().visible, 'Indicator can be hidden without changing system indicator');
 }

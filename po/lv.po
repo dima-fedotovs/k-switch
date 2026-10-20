@@ -265,17 +265,17 @@ msgstr ""
 "Īsinājumtaustiņi darbojas visur, kamēr K-switch ir ieslēgts: lietotnēs un "
 "pārskatā. Piemērs: <Super><Alt>space. Lai atspējotu, atstājiet tukšu."
 
-msgid "Show group indicator"
-msgstr "Rādīt grupas indikatoru"
+msgid "Show icon"
+msgstr "Rādīt ikonu"
 
-msgid "The standard GNOME indicator is managed separately."
-msgstr "Standarta GNOME indikators tiek pārvaldīts atsevišķi."
+msgid "Independent of the labels. Hide all three elements to hide the indicator."
+msgstr "Neatkarīgi no uzrakstiem. Lai paslēptu indikatoru, izslēdziet visus trīs elementus."
 
 msgid "Show group name"
 msgstr "Rādīt grupas nosaukumu"
 
-msgid "Hide both labels to show the K-switch icon."
-msgstr "Ja abi uzraksti ir paslēpti, tiek rādīta K-switch ikona."
+msgid "Show the group's short name in the panel."
+msgstr "Rādīt grupas īso nosaukumu panelī."
 
 msgid "Show selected language"
 msgstr "Rādīt izvēlēto valodu"

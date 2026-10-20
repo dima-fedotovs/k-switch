@@ -27,9 +27,9 @@ check(
   'Configuration must round trip through GSettings',
 );
 const peer = new Gio.Settings({ schema_id: 'org.gnome.shell.extensions.guru.bug.k-switch' });
-writeConfiguration(settings, { ...imported, showIndicator: false });
+writeConfiguration(settings, { ...imported, showIcon: true });
 check(
-  !readConfiguration(peer).showIndicator,
+  readConfiguration(peer).showIcon,
   'Import must not leave the live settings object in delayed-write mode',
 );
 desktop.set_strv('xkb-options', ['compose:ralt']);
