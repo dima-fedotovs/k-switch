@@ -13,7 +13,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/prepare
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
           cache: pip
@@ -104,7 +104,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run compile
-      - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           languages: ${{ matrix.language }}
           build-mode: none
@@ -115,7 +115,7 @@ jobs:
               - dist
               - artifacts
               - node_modules
-      - uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         id: analyze
         with:
           output: sarif
@@ -128,7 +128,7 @@ jobs:
           path: sarif/
           if-no-files-found: error
       - run: node .build/scripts/codeql-gate.js sarif
-      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         if: ${{ always() && steps.analyze.outcome == 'success' }}
         with:
           sarif_file: sarif
