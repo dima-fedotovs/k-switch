@@ -358,9 +358,16 @@ The coverage tool's `test-exclude@8.0.0` still requires vulnerable major version
 of `glob` and `minimatch`. Scoped npm overrides pin its dependencies to `glob`
 14.0.6 and `minimatch` 11.0.9; the full coverage gate and negative controls verify
 this combination. Remove the overrides when an upstream update supports fixed
-versions directly. Python Dependabot security updates also currently fail during
-dependency resolution; updating the hash-locked scanner dependencies remains
-separate follow-up work.
+versions directly.
+
+Python Dependabot updates the hash-locked scanner `.txt` files directly. Its
+updater excludes the `.in` inputs because pip-compile attempts to build PyICU
+metadata without the required system ICU development libraries. The inputs remain
+available for local regeneration with `uv pip compile --python-version 3.12
+--generate-hashes`; the updater and both hosted scanner environments select
+Python 3.12 from `security/.python-version`. When updating a scanner's root pin in
+a `.txt` file, update the matching `.in` pin in the same PR; unit tests require
+them to agree. Transitive security updates retain the other locked versions.
 
 Required scanner failures block CI. ScanCode reports must match the exact input
 file inventory and include their result fields; directory-only, partial, duplicate
@@ -372,7 +379,7 @@ See [SECURITY.md](SECURITY.md) and [the source review](security/PROVENANCE.md).
 Scanner dependencies are hash-locked.
 
 Changes to main go through pull requests with required green checks. Dependabot
-updates npm and Actions dependencies weekly; security checks also run weekly.
+updates npm, Actions and Python scanner dependencies weekly; security checks also run weekly.
 Compatible npm updates and Actions updates are grouped to limit PR noise. Major
 Node typings and TypeScript upgrades require a coordinated runtime/linter change:
 Node typings follow Node 24, and the pinned typescript-eslint supports TypeScript

@@ -20,3 +20,12 @@ updates:
     groups:
       actions:
         patterns: ['*']
+  - package-ecosystem: pip
+    directory: /security
+    schedule:
+      interval: weekly
+    # Update hashed pins directly: pip-compile needs ICU to inspect PyICU,
+    # which is unavailable in Dependabot's standard updater image.
+    exclude-paths:
+      - requirements.in
+      - shexli-requirements.in

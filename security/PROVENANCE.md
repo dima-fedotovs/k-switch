@@ -92,6 +92,14 @@ are unchanged. The existing license-metadata approvals are rebound to that exact
 lockfile SHA256 after comparing all other parsed fields. This is not a new
 SCANOSS scan or approval of changed source fragments.
 
+CI tooling review refreshed: 2026-11-17. The npm update replaces vulnerable
+matching/traversal dependencies and their lint-tool consumers. Every ScanCode
+detection in the updated lockfile was checked against its exact line: all are
+package license metadata, with the same expressions as before. The lockfile
+approvals are rebound to its new SHA256. The added traversal helper is also a
+development-only dependency. No dependency code is added to the extension ZIP,
+and this metadata review does not claim a new SCANOSS source scan.
+
 All npm dependencies are development/build tools and are excluded from the
 extension ZIP. The release CycloneDX SBOM retains each dependency's declared
 license and marks its build/development purpose. ScanCode scans both the tracked
