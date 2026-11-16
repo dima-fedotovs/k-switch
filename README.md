@@ -353,6 +353,15 @@ synchronous Shell IO, unavailable/failing scanners and malformed/partial reports
 The quality job scans the final ZIP again before uploading release assets; the
 release workflow publishes that same artifact. Reports are retained in the
 `shexli-results` Actions artifact.
+
+The coverage tool's `test-exclude@8.0.0` still requires vulnerable major versions
+of `glob` and `minimatch`. Scoped npm overrides pin its dependencies to `glob`
+14.0.6 and `minimatch` 11.0.9; the full coverage gate and negative controls verify
+this combination. Remove the overrides when an upstream update supports fixed
+versions directly. Python Dependabot security updates also currently fail during
+dependency resolution; updating the hash-locked scanner dependencies remains
+separate follow-up work.
+
 Required scanner failures block CI. ScanCode reports must match the exact input
 file inventory and include their result fields; directory-only, partial, duplicate
 or malformed reports and diagnostics are rejected before reading reported paths.
