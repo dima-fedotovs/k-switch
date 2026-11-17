@@ -17,6 +17,14 @@ to their earlier file hashes.
 The reviewed declarations and comparisons concern the tracked project source;
 they are not a universal originality certificate.
 
+Release review refreshed: 2026-11-17 for version 1.0.1. A complete local SCANOSS
+report covers all 92 tracked source, test and script files; its inventory matches
+the submitted WFP and the tracked allowlist. Four files returned matches.
+The codeql-gate and keybindings approvals remain exact. The security-negative
+match now names a different upstream revision and was reviewed again; gjs-test
+has a newly reported boilerplate match, reviewed below. Subsequent validation
+reuses this complete report without another API submission.
+
 ## Known influence
 
 Switch Two Layouts v13 by Alice Mikityanska supplies the signal interception
@@ -71,6 +79,24 @@ GNOME 50.1 resources; the runtime imports those modules instead of bundling them
   The retrieved file MD5 equals the scanner's file_hash. The common normalized
   run is the assert and execFileSync/spawnSync Node import sequence. The upstream
   tests sandbox-engine bootstrapping; K-switch tests redacted scanner rejection.
+  For the 1.0.1 review, the report instead names v0.9.0 with three hits, local
+  lines 3-14 and upstream lines 3-14. The retrieved upstream MD5 is
+  `f6802522603baa7310aca9627716399b`, matching the report. The common material is
+  the execFileSync/spawnSync import and standard filesystem/temporary-directory
+  test scaffolding. The upstream span declares platform-specific engine defaults;
+  the K-switch span constructs a synthetic credential and checks scanner redaction.
+  The updated exact match receives its own approval.
+- `scripts/gjs-test.ts`: two hits against `BrosInCode/letagents`, tag
+  `desktop-v0.1.61`, `apps/desktop/daemon/__tests__/workspace-change-capture.test.ts`.
+  https://github.com/BrosInCode/letagents/blob/desktop-v0.1.61/apps/desktop/daemon/__tests__/workspace-change-capture.test.ts
+  Retrieved upstream MD5: `30f29ee994f0cf9ec3b41bd4cca5cedb`, matching the report.
+  The reported spans are local lines 3-20 and upstream lines 4-21. Both use Node
+  filesystem/os/path imports, a temporary directory and try/finally cleanup.
+  K-switch prepares and runs a GJS settings fixture with an in-memory backend;
+  the upstream builds a temporary Git history for a workspace-diff test. Their
+  application calls and assertions differ. The component-level license labels
+  do not establish an additional license grant on this independently implemented
+  Node resource-management scaffolding.
 - `test/fixture-isolation.test.ts`: seven hits against
   `openclaw/clawsweeper`, revision `04e5065`, `test/setup-codex-context.test.ts`.
   https://github.com/openclaw/clawsweeper/blob/04e5065/test/setup-codex-context.test.ts
@@ -99,6 +125,11 @@ package license metadata, with the same expressions as before. The lockfile
 approvals are rebound to its new SHA256. The added traversal helper is also a
 development-only dependency. No dependency code is added to the extension ZIP,
 and this metadata review does not claim a new SCANOSS source scan.
+
+Release 1.0.1 changes only the two application version fields in the npm lockfile
+relative to the reviewed CI tooling update. All dependency records, integrity
+values and license fields were compared as parsed JSON and remain identical.
+The metadata approvals are rebound to this release lockfile's exact SHA256.
 
 All npm dependencies are development/build tools and are excluded from the
 extension ZIP. The release CycloneDX SBOM retains each dependency's declared

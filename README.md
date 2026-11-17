@@ -337,6 +337,8 @@ tracked in [#19](https://github.com/dima-fedotovs/k-switch/issues/19).
 Final visual acceptance of the new icon and display controls is part of that
 manual checklist. Version 1.0.0 is the first stable GitHub release; the previous
 testing release is 0.4.2. Whole-project manual acceptance remains open in #19.
+Version 1.0.1 refreshes build/scanner dependencies and repairs Python Dependabot
+updates. Extension behavior is unchanged.
 Laptop acceptance after a full sign-out/sign-in remains a
 manual check; repository tests do not restart either working desktop.
 
