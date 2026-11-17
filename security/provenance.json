@@ -41,6 +41,20 @@
       "matchSha256": "797e661d7cb66601224abdfee7cd1e3730806c0b7a3ed0eba7b118bbd5649c97",
       "reason": "Reviewed common GI/Shell import scaffolding; upstream MD5 verified; group registration and rollback implementation differ; see security/PROVENANCE.md",
       "upstream": "https://github.com/boerdereinar/copyous"
+    },
+    {
+      "path": "scripts/gjs-test.ts",
+      "sourceSha256": "728d5b20caba384c95f5ce9f3deeb434f592b3cd500521ce6d2877f000ba67f0",
+      "matchSha256": "810348e6dd628c63d47f9124441eff5238c977660686108d43941d47cd36063d",
+      "reason": "Reviewed standard Node imports, temporary-directory creation and try/finally cleanup; upstream MD5 verified; GJS settings fixture differs from workspace Git-diff tests; see security/PROVENANCE.md",
+      "upstream": "https://github.com/BrosInCode/letagents"
+    },
+    {
+      "path": "scripts/security-negative.ts",
+      "sourceSha256": "d7aa52bbf0aaa2e70e6c4cd7948efa8e33d641abfad0b5677b1daa1c0b8a1a33",
+      "matchSha256": "99e60b2839c40ae79c8925a0cff2cc951385bd6eea5d1e03a3ff953575edd1f5",
+      "reason": "Re-reviewed updated upstream revision and exact match fields; upstream MD5 verified; common subprocess/test imports and scaffolding, different redaction assertions; see security/PROVENANCE.md",
+      "upstream": "https://github.com/fitlab-ai/agent-infra"
     }
   ]
 }
